@@ -5,6 +5,8 @@ import SwiftUI
 /// not live in the menu bar — a tool whose job is to reclaim menu bar width
 /// should not spend an icon's worth of it.
 struct MenubarSpacerApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+
     var body: some Scene {
         Window("Menubar Spacer", id: "main") {
             ContentView()
@@ -14,6 +16,14 @@ struct MenubarSpacerApp: App {
             CommandGroup(replacing: .newItem) {}
         }
     }
+}
+
+/// Closing the window quits. Without this the process would stay alive with no
+/// window and no menu bar icon, and the single-instance guard would then turn
+/// every later launch into "already running" with nothing on screen to show for
+/// it — a state the user cannot get out of except by force-quitting.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
 
 /// `@main` lives here rather than on the `App` struct because a SwiftUI `App`
