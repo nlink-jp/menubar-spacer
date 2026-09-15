@@ -1,44 +1,43 @@
 import SwiftUI
 
-/// Scaffold UI: it reads and describes the live state, and lists the presets.
-/// Applying, previewing and restoring are Phase 2 work — the coordinator exists
-/// and is tested, but nothing here calls it yet, so this window must not offer a
-/// control that claims to change anything.
 struct ContentView: View {
-    private let coordinator: SpacingCoordinator
-    @State private var state: SpacingState?
+    @StateObject private var model: SpacingViewModel
 
-    init(coordinator: SpacingCoordinator = SpacingCoordinator(preferences: SystemSpacingPreferences(),
-                                                              backups: FileBackupStore())) {
-        self.coordinator = coordinator
+    init(model: SpacingViewModel? = nil) {
+        _model = StateObject(wrappedValue: model ?? SpacingViewModel(
+            coordinator: SpacingCoordinator(preferences: SystemSpacingPreferences(),
+                                            backups: FileBackupStore())))
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Menu bar spacing")
-                .font(.title2.weight(.semibold))
+            header
 
-            GroupBox("Current spacing") {
-                VStack(alignment: .leading, spacing: 6) {
-                    LabeledContent("This Mac", value: SpacingDescription.spacing(state?.currentHost))
-                    LabeledContent("All Macs", value: SpacingDescription.spacing(state?.anyHost))
-                    LabeledContent("Can be undone", value: SpacingDescription.backup(state?.backup))
+            Picker("Spacing", selection: $model.selection) {
+                ForEach(SpacingPreset.allCases) { preset in
+                    Text(preset.title).tag(preset)
                 }
-                .padding(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
+
+            HStack(spacing: 10) {
+                Button("Apply") { model.apply() }
+                    .keyboardShortcut(.defaultAction)
+                Button("Show current spacing") { model.showCurrentSpacing() }
+                Button("Undo my changes") { model.restore() }
+                    .disabled(!model.canUndo)
             }
 
-            GroupBox("Presets") {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(SpacingPreset.allCases) { preset in
-                        LabeledContent(preset.title) {
-                            Text(preset.value.map(String.init) ?? "—").monospacedDigit()
-                        }
-                    }
-                }
-                .padding(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            if let message = model.message {
+                Text(message)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
             }
+
+            Divider()
 
             Text("Version \(AppInfo.version)")
                 .font(.footnote)
@@ -46,18 +45,27 @@ struct ContentView: View {
                 .textSelection(.enabled)
         }
         .padding(20)
-        .frame(width: 380)
-        .onAppear { state = coordinator.state() }
+        .frame(width: 420)
+        .onAppear { model.refresh() }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Menu bar spacing")
+                .font(.title2.weight(.semibold))
+            Text("Currently \(SpacingDescription.spacing(model.state.currentHost)).")
+                .foregroundStyle(.secondary)
+        }
     }
 }
 
-/// What the person in front of the screen is told. Deliberately free of the
-/// app's own vocabulary: no key names, no "absent", no build status.
+/// What the person in front of the screen is told about the current state.
+/// Deliberately free of the app's own vocabulary: no key names, no "absent".
 enum SpacingDescription {
     static func spacing(_ settings: SpacingSettings?) -> String {
-        guard let settings else { return "—" }
-        if settings == .unset { return "macOS default" }
-        if let value = settings.uniformValue { return String(value) }
+        guard let settings else { return "unknown" }
+        if settings == .unset { return "the macOS default" }
+        if let value = settings.uniformValue { return "set to \(value)" }
         return "set outside this app"
     }
 
@@ -72,6 +80,8 @@ enum SpacingDescription {
 }
 
 #Preview {
-    ContentView(coordinator: SpacingCoordinator(preferences: StubSpacingPreferences(currentHost: .uniform(8)),
-                                                backups: StubBackupStore()))
+    ContentView(model: SpacingViewModel(
+        coordinator: SpacingCoordinator(preferences: StubSpacingPreferences(currentHost: .uniform(8)),
+                                        backups: StubBackupStore()),
+        startPreview: { _ in }))
 }

@@ -18,7 +18,7 @@ they held beforehand, and restores that state on demand.
 | | |
 |---|---|
 | Presets | Minimum (4), Narrow (8), OS default, Wide (24) |
-| Preview | Shows real status items at the new spacing before you commit to it |
+| See it at once | Applying puts three sample icons in the menu bar at the new spacing, so you can judge it without relaunching anything |
 | Restore | Returns both keys to the state recorded before the first change, including "unset" |
 | Residency | None — launch it, choose, quit |
 

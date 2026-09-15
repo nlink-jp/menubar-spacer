@@ -27,7 +27,7 @@ apply → quit.
 |---|---|
 | Current state | Current value of both keys ("OS default" when absent), and whether menubar-spacer set it |
 | Preset picker | Minimum (4) / Narrow (8) / OS default / Wide (24) |
-| Preview | Spawns a short-lived child process showing the app's own status items, so the real spacing is visible |
+| Sample icons | **After** applying, spawns a short-lived child process showing sample status items at the new spacing |
 | Apply | Writes the preset, then reads the effective values back to verify the result |
 | Restore | Returns to the recorded prior state, including absence |
 | Guidance | States that a target app must be relaunched — or the user logged out — before the change shows |
@@ -195,6 +195,12 @@ intelligence and IR — none of which fit.
 - The preview uses the app's own real status items. Whether a new item in the
   same process picks up the new value was measured in Phase 1: it does **not**,
   so the preview spawns a child process, which matches a fresh process exactly.
+- **A preview *before* applying turned out to be impossible, and was withdrawn
+  (Phase 2).** A child process picks up what is written in the preference
+  domain, not what is selected in a window; there is no way to show a value
+  without writing it. The sample icons therefore appear automatically *after* an
+  apply — which also answers this product's central UX problem, that the change
+  is invisible in every app already running.
 - Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
   available to test on, but the chosen policy is to promise only what has been
   measured rather than widen the verification surface.

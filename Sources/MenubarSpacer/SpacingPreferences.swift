@@ -102,9 +102,11 @@ struct SystemSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWrit
             scope.host
         ) else { return .absent }
 
+        // A CFBoolean also bridges to NSNumber, so the type id is checked first;
+        // a float is left to the verbatim path rather than being truncated.
         let typeID = CFGetTypeID(raw)
-        if typeID == CFNumberGetTypeID(), !CFNumberIsFloatType(raw as! CFNumber),
-           let number = raw as? NSNumber {
+        if typeID == CFNumberGetTypeID(), let number = raw as? NSNumber,
+           !CFNumberIsFloatType(number as CFNumber) {
             return .integer(number.intValue)
         }
         let summary = Self.summarize(raw, typeID: typeID)

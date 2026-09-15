@@ -14,6 +14,17 @@ enum ApplyOutcome: Equatable {
     case noEffect(expected: SpacingSettings, actual: SpacingSettings)
 }
 
+extension ApplyOutcome {
+    /// Whether the Mac now holds something other than it did a moment ago. The
+    /// UI shows a preview exactly when this is true.
+    var changedSomething: Bool {
+        switch self {
+        case .applied, .appliedOverExternalChange: return true
+        case .alreadyApplied, .noEffect: return false
+        }
+    }
+}
+
 enum RestoreOutcome: Equatable {
     /// This app has changed nothing.
     case nothingToRestore

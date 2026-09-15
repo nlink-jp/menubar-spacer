@@ -115,11 +115,11 @@ final class SpacingPresetTests: XCTestCase {
 /// key names, "absent", build status — only what the situation means.
 final class SpacingDescriptionTests: XCTestCase {
     func testTheUntouchedStateIsNamedAfterMacOSNotOurKeys() {
-        XCTAssertEqual(SpacingDescription.spacing(.unset), "macOS default")
+        XCTAssertEqual(SpacingDescription.spacing(.unset), "the macOS default")
     }
 
     func testAValueReadsAsItsNumber() {
-        XCTAssertEqual(SpacingDescription.spacing(.uniform(8)), "8")
+        XCTAssertEqual(SpacingDescription.spacing(.uniform(8)), "set to 8")
     }
 
     func testAStateWeDidNotProduceIsExplainedNotDumped() {

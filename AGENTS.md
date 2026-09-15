@@ -130,9 +130,11 @@ the guard is the org's standard for every Swift GUI app here
 
 - A change reaches an app only when that app next launches. The app must say so
   and must never quit other applications.
-- **The preview must be a child process.** Applying and then creating status
-  items in the running app shows the old spacing — measured, not assumed. Spawn
-  the same executable in a preview mode and let it exit; do not relaunch the app.
+- **The preview must be a child process, and can only follow an apply.**
+  Creating status items in the running app after a write shows the *old* spacing
+  — measured, not assumed. A child picks up whatever is written in the domain, so
+  there is no way to preview a value the user has only selected: applying is what
+  makes it showable. `--preview` is exempt from the single-instance guard.
 - `SpacingPreset.matching` returns nil for a state we did not produce (a
   hand-edited `defaults` write). The UI has to describe that state, not assume it.
 - **"There is a backup" means "something of ours is in effect".** The coordinator

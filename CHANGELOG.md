@@ -8,6 +8,12 @@ Semantic Versioning.
 
 ### Added
 
+- The window: pick a preset, apply it, undo it. Applying shows the result at
+  once with three sample icons in the menu bar, because the change is invisible
+  in every app that is already running.
+- A single-instance guard, so a second copy exits instead of opening a second
+  window onto the same setting. The preview child is exempt.
+
 - The preference layer for the two spacing keys, an on-disk backup of the state
   this Mac held beforehand, and the apply/restore coordinator that orders the
   two safely. See [ADR-0001](docs/en/adr/0001-backup-and-restore-model.md).
