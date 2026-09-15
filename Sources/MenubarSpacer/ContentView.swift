@@ -38,7 +38,7 @@ struct ContentView: View {
                 .textSelection(.enabled)
         }
         .padding(20)
-        .frame(width: 420)
+        .frame(width: 520)
         .onAppear { model.refresh() }
     }
 

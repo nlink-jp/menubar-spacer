@@ -42,32 +42,39 @@ enum SpacingSample {
 struct SpacingSampleRow: View {
     let preset: SpacingPreset
     let isCurrent: Bool
+    let isSelected: Bool
 
     /// Every name is checked to resolve by `SpacingSampleTests`: a symbol that
     /// does not exist draws an empty slot, which reads as a bug in the drawing.
     static let symbols = ["wifi", "battery.75percent", "speaker.wave.2.fill",
                           "moon.fill", "clock", "magnifyingglass"]
 
+    /// A fixed label column, so every strip starts at the same x — the shared
+    /// left edge is what makes the four comparable at a glance.
+    static let labelColumnWidth: CGFloat = 132
+
+    /// Name and strip sit on **one horizontal band**, so the radio the system
+    /// draws to the left of this label is unambiguously this row's. Stacking the
+    /// name above the strip put each radio between two bands, and which one it
+    /// belonged to could not be read.
     var body: some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text(preset.title).font(.callout)
-                    Text("\(Int(SpacingSample.totalWidth(for: preset.value))) pt")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                    if isCurrent {
-                        Text("in effect now")
-                            .font(.caption2)
-                            .padding(.horizontal, 5).padding(.vertical, 1)
-                            .background(Capsule().fill(Color.secondary.opacity(0.2)))
-                    }
-                }
-                strip
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(preset.title)
+                    .font(.callout.weight(isSelected ? .semibold : .regular))
+                Text(isCurrent ? "\(width) pt · in effect" : "\(width) pt")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
             }
+            .frame(width: Self.labelColumnWidth, alignment: .leading)
+
+            strip
         }
+        .padding(.vertical, 2)
         .contentShape(Rectangle())
     }
+
+    private var width: Int { Int(SpacingSample.totalWidth(for: preset.value)) }
 
     private var strip: some View {
         HStack(spacing: 0) {
@@ -80,6 +87,10 @@ struct SpacingSampleRow: View {
         .foregroundStyle(.white)
         .padding(.vertical, 3)
         .background(RoundedRectangle(cornerRadius: 5).fill(Color.black.opacity(0.82)))
+        .overlay(
+            RoundedRectangle(cornerRadius: 5)
+                .strokeBorder(Color.accentColor, lineWidth: isSelected ? 2 : 0)
+        )
     }
 }
 
@@ -98,7 +109,8 @@ struct SpacingSampleView: View {
             Picker(selection: $selection) {
                 ForEach(SpacingPreset.allCases) { preset in
                     SpacingSampleRow(preset: preset,
-                                     isCurrent: SpacingSample.value(of: current) == .some(preset.value))
+                                     isCurrent: SpacingSample.value(of: current) == .some(preset.value),
+                                     isSelected: preset == selection)
                         .tag(preset)
                 }
             } label: {
