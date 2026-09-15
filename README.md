@@ -54,6 +54,13 @@ icons side by side occupy 186px at Minimum against 258px at the default — see
 - The two keys are always changed together; their individual effects are unknown.
 - Settings apply to the current user on the current Mac only.
 
+## Before you uninstall
+
+**Click "Undo my changes" first.** Removing the app does not undo the spacing —
+the setting belongs to macOS, not to the app — and uninstalling takes the record
+of what your Mac held beforehand with it. If that has already happened, the
+command below still returns you to the macOS default.
+
 ## Undoing it without the app
 
 If the app is gone and the spacing is still changed, this restores the built-in
