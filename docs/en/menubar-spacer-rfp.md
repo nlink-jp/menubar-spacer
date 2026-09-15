@@ -196,8 +196,8 @@ intelligence and IR — none of which fit.
   apps on the user's behalf can destroy unsaved work.
 - The preview uses the app's own real status items. Whether a new item in the
   same process picks up the new value is unverified and is a Phase 1 check.
-- Supported OS is limited to macOS 27+. Verifying on macbookair.private
-  (macOS 26.x, M1) was possible, but the chosen policy is to promise only what
-  has been measured rather than widen the verification surface.
+- Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
+  available to test on, but the chosen policy is to promise only what has been
+  measured rather than widen the verification surface.
 - Distribution is GitHub Release plus a Homebrew cask, the same route as the
   other Swift GUI apps.

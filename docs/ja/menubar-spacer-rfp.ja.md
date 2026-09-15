@@ -178,6 +178,6 @@ instant-translate、grid-edit、zip-porter）。cli-series は外部サービス
 - 反映問題は「案内のみ」を採用。他アプリを代行で終了させると未保存データを壊すため。
 - プレビューは「自身のステータス項目で実物確認」を採用。ただし同一プロセス内で
   新規項目が新しい値を拾うかは未検証で、Phase 1 の確認項目とした。
-- 対応 OS は macOS 27+ に限定。macbookair.private（macOS 26.x / M1）での検証も
+- 対応 OS は macOS 27+ に限定。手元に macOS 26 の Apple Silicon 機があり検証も
   可能だったが、検証範囲を広げずに実測済みの範囲だけを保証する方針を選んだ。
 - 配布は GitHub Release + Homebrew cask。既存の Swift GUI アプリと同じ経路。
