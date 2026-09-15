@@ -17,7 +17,7 @@ they held beforehand, and restores that state on demand.
 
 | | |
 |---|---|
-| Presets | Minimum (4), Narrow (8), OS default, Wide (24) |
+| Presets | Minimum (4), Narrow (8), OS default, Wide (24) — [what each looks like](docs/en/preset-appearance.md) |
 | See it at once | Applying puts three sample icons in the menu bar at the new spacing, so you can judge it without relaunching anything |
 | Restore | Returns both keys to the state recorded before the first change, including "unset" |
 | Residency | None — launch it, choose, quit |
@@ -32,7 +32,9 @@ Measured on macOS 27.0 with a test app whose status item is 21pt wide:
 |---|---:|---:|---:|---:|
 | Item width | 37pt | 25pt | 29pt | 45pt |
 
-Roughly `width ≈ icon + value`, which puts the built-in default near 16.
+Roughly `width ≈ icon + value`, which puts the built-in default near 16. Six
+icons side by side occupy 186px at Minimum against 258px at the default — see
+[the photographs](docs/en/preset-appearance.md).
 
 ## Limits
 

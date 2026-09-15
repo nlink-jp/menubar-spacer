@@ -8,6 +8,10 @@ Semantic Versioning.
 
 ### Added
 
+- Photographs of every preset, with the measured widths, and a comparison image
+  stacking them on one canvas: six icons occupy 186px at Minimum against 258px
+  at the macOS default. See docs/en/preset-appearance.md.
+
 - The window: pick a preset, apply it, undo it. Applying shows the result at
   once with three sample icons in the menu bar, because the change is invisible
   in every app that is already running.

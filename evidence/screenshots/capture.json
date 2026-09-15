@@ -1,0 +1,91 @@
+{
+  "test": "menubar-spacer preset screenshots",
+  "groups_of_three_items": 2,
+  "stages": {
+    "default": {
+      "requested_value": null,
+      "effective": {},
+      "crop": [
+        1370,
+        -6,
+        258,
+        42
+      ],
+      "item_window_widths": [
+        37,
+        38,
+        48,
+        37,
+        38,
+        48
+      ],
+      "image": "menu-bar-default.png"
+    },
+    "minimum": {
+      "requested_value": 4,
+      "effective": {
+        "NSStatusItemSelectionPadding": 4,
+        "NSStatusItemSpacing": 4
+      },
+      "crop": [
+        1442,
+        -6,
+        186,
+        42
+      ],
+      "item_window_widths": [
+        25,
+        26,
+        36,
+        25,
+        26,
+        36
+      ],
+      "image": "menu-bar-minimum.png"
+    },
+    "narrow": {
+      "requested_value": 8,
+      "effective": {
+        "NSStatusItemSelectionPadding": 8,
+        "NSStatusItemSpacing": 8
+      },
+      "crop": [
+        1418,
+        -6,
+        210,
+        42
+      ],
+      "item_window_widths": [
+        29,
+        30,
+        40,
+        29,
+        30,
+        40
+      ],
+      "image": "menu-bar-narrow.png"
+    },
+    "wide": {
+      "requested_value": 24,
+      "effective": {
+        "NSStatusItemSelectionPadding": 24,
+        "NSStatusItemSpacing": 24
+      },
+      "crop": [
+        1322,
+        -6,
+        306,
+        42
+      ],
+      "item_window_widths": [
+        45,
+        46,
+        56,
+        45,
+        46,
+        56
+      ],
+      "image": "menu-bar-wide.png"
+    }
+  }
+}

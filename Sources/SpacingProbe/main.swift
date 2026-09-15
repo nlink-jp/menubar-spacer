@@ -111,6 +111,37 @@ func measure(_ items: [(ItemKind, NSStatusItem)]) -> [[String: Any]] {
     }
 }
 
+/// Holds `count` items on screen so something else can photograph them, and
+/// reports where they are. Screen coordinates are AppKit's (origin bottom-left);
+/// the caller converts for `screencapture`, which measures from the top.
+final class HoldProbe: NSObject, NSApplicationDelegate {
+    let output: String
+    let count: Int
+    let seconds: Double
+    private var items: [(ItemKind, NSStatusItem)] = []
+
+    init(output: String, count: Int, seconds: Double) {
+        self.output = output
+        self.count = count
+        self.seconds = seconds
+    }
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        items = (0..<count).flatMap { _ in makeItems(labelPrefix: "Probe hold") }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            let screen = NSScreen.screens.first?.frame ?? .zero
+            writeJSON([
+                "os": ProcessInfo.processInfo.operatingSystemVersionString,
+                "effective": effectivePreferences(),
+                "screen_frame": rect(screen),
+                "items": measure(self.items),
+            ], to: self.output)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) { NSApp.terminate(nil) }
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + seconds + 5) { _Exit(0) }
+    }
+}
+
 // MARK: - Probe application
 
 final class Probe: NSObject, NSApplicationDelegate {
@@ -254,6 +285,17 @@ case "write":
     else { exit(2) }
     exit(writeValues(values))
 
+case "hold":
+    guard arguments.count == 4, arguments[1].hasPrefix("/"),
+          let count = Int(arguments[2]), (1...12).contains(count),
+          let seconds = Double(arguments[3]), (1...60).contains(seconds)
+    else { exit(2) }
+    let holdApp = NSApplication.shared
+    holdApp.setActivationPolicy(.accessory)
+    let hold = HoldProbe(output: arguments[1], count: count, seconds: seconds)
+    holdApp.delegate = hold
+    holdApp.run()
+
 case "sample", "same-process":
     guard arguments.count >= 2, arguments[1].hasPrefix("/") else { exit(2) }
     var value: Int?
@@ -268,6 +310,6 @@ case "sample", "same-process":
     app.run()
 
 default:
-    FileHandle.standardError.write(Data("usage: spacing-probe --self-test | read PATH | write PATH | sample PATH | same-process PATH VALUE\n".utf8))
+    FileHandle.standardError.write(Data("usage: spacing-probe --self-test | read PATH | write PATH | sample PATH | same-process PATH VALUE | hold PATH GROUPS SECONDS\n".utf8))
     exit(2)
 }

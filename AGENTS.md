@@ -57,6 +57,9 @@ the output location and the signing.
 - `spikes/run_phase1.py` — the measurement coordinator: exact backup before any
   write, external watchdog, serialised mutations, manual `restore` mode.
   `spikes/test_phase1.py` guards its analysis before anything is written.
+- `spikes/capture_spacing.py` — photographs the menu bar at each preset, reusing
+  the same backup/restore. It crops to the fixture's own reported geometry, so
+  the operator's real menu bar is never captured.
 
 ## Non-negotiable rules
 
