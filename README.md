@@ -18,7 +18,7 @@ they held beforehand, and restores that state on demand.
 | | |
 |---|---|
 | Presets | Minimum (4), Narrow (8), OS default, Wide (24) — [what each looks like](docs/en/preset-appearance.md) |
-| See it at once | Applying puts three sample icons in the menu bar at the new spacing, so you can judge it without relaunching anything |
+| See it first | The window draws six sample icons at the selected spacing beside the one in effect, to the widths measured on this version of macOS |
 | Restore | Returns both keys to the state recorded before the first change, including "unset" |
 | Residency | None — launch it, choose, quit |
 

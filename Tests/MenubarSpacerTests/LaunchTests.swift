@@ -3,45 +3,12 @@ import XCTest
 
 final class LaunchTests: XCTestCase {
     func testAnOrdinaryLaunchRuns() {
-        XCTAssertEqual(Launch.decide(arguments: [], otherInstanceCount: 0), .run)
+        XCTAssertEqual(Launch.decide(otherInstanceCount: 0), .run)
     }
 
     func testASecondCopyExitsInsteadOfOpeningASecondWindow() {
-        XCTAssertEqual(Launch.decide(arguments: [], otherInstanceCount: 1), .exitAlreadyRunning)
-    }
-
-    /// The preview is always a child of the running app. Guarding it would turn
-    /// the feature into a silent no-op, so the decision comes first.
-    func testThePreviewIsExemptFromTheSingleInstanceGuard() {
-        XCTAssertEqual(Launch.decide(arguments: ["--preview"], otherInstanceCount: 1),
-                       .preview(seconds: Launch.defaultPreviewSeconds))
-        XCTAssertEqual(Launch.decide(arguments: ["--preview", "3"], otherInstanceCount: 4),
-                       .preview(seconds: 3))
-    }
-
-    func testThePreviewArgumentsRoundTrip() {
-        let arguments = Launch.previewArguments(seconds: 2.5)
-        XCTAssertEqual(Launch.decide(arguments: arguments, otherInstanceCount: 0),
-                       .preview(seconds: 2.5))
-    }
-
-    func testAPreviewCanNeverHoldTheMenuBarIndefinitely() {
-        XCTAssertEqual(Launch.clampPreview(9_999), 30)
-        XCTAssertEqual(Launch.clampPreview(0), Launch.defaultPreviewSeconds)
-        XCTAssertEqual(Launch.clampPreview(-4), Launch.defaultPreviewSeconds)
-        // Not finite is not "very long": it falls back like any other bad input.
-        XCTAssertEqual(Launch.clampPreview(.infinity), Launch.defaultPreviewSeconds)
-        XCTAssertEqual(Launch.clampPreview(.nan), Launch.defaultPreviewSeconds)
-    }
-
-    func testAnUnparseableDurationFallsBackInsteadOfFailing() {
-        XCTAssertEqual(Launch.decide(arguments: ["--preview", "soon"], otherInstanceCount: 0),
-                       .preview(seconds: Launch.defaultPreviewSeconds))
-    }
-
-    func testAnUnknownArgumentStillOpensTheApp() {
-        XCTAssertEqual(Launch.decide(arguments: ["-NSDocumentRevisionsDebugMode", "YES"],
-                                     otherInstanceCount: 0), .run)
+        XCTAssertEqual(Launch.decide(otherInstanceCount: 1), .exitAlreadyRunning)
+        XCTAssertEqual(Launch.decide(otherInstanceCount: 3), .exitAlreadyRunning)
     }
 }
 

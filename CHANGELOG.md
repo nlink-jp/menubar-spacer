@@ -12,11 +12,11 @@ Semantic Versioning.
   stacking them on one canvas: six icons occupy 186px at Minimum against 258px
   at the macOS default. See docs/en/preset-appearance.md.
 
-- The window: pick a preset, apply it, undo it. Applying shows the result at
-  once with three sample icons in the menu bar, because the change is invisible
-  in every app that is already running.
+- The window: pick a preset, apply it, undo it. It draws six sample icons at
+  the selected spacing beside the one in effect, to the widths measured on this
+  version of macOS, so the choice can be made before writing anything.
 - A single-instance guard, so a second copy exits instead of opening a second
-  window onto the same setting. The preview child is exempt.
+  window onto the same setting.
 
 - The preference layer for the two spacing keys, an on-disk backup of the state
   this Mac held beforehand, and the apply/restore coordinator that orders the

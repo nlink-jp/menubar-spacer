@@ -8,10 +8,6 @@ import Foundation
 /// "absent", no type names.
 enum OutcomeMessage {
     static let relaunchNote = "Quit and reopen an app to see its menu bar icons move."
-    /// Shown when the app puts its own sample icons up: the only way to see the
-    /// new spacing without relaunching anything, because a running process keeps
-    /// the spacing it started with.
-    static let previewNote = "Three sample icons are in the menu bar now."
 
     static func apply(_ outcome: ApplyOutcome) -> String {
         switch outcome {

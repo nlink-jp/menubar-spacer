@@ -27,16 +27,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 }
 
 /// `@main` lives here rather than on the `App` struct because a SwiftUI `App`
-/// cannot run anything before its Scene, and two decisions have to be made
-/// first: whether this process is a preview child, and whether another copy of
-/// the app is already running.
+/// cannot run anything before its Scene, and one decision has to be made first:
+/// whether another copy of the app is already running.
 @main
 enum Main {
     static func main() {
-        switch Launch.decide(arguments: Array(CommandLine.arguments.dropFirst()),
-                             otherInstanceCount: Launch.otherInstanceCount()) {
-        case let .preview(seconds):
-            PreviewSession.run(seconds: seconds)
+        switch Launch.decide(otherInstanceCount: Launch.otherInstanceCount()) {
         case .exitAlreadyRunning:
             FileHandle.standardError.write(Data("menubar-spacer is already running\n".utf8))
             exit(0)

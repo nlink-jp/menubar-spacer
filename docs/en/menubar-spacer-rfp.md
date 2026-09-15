@@ -27,7 +27,7 @@ apply → quit.
 |---|---|
 | Current state | Current value of both keys ("OS default" when absent), and whether menubar-spacer set it |
 | Preset picker | Minimum (4) / Narrow (8) / OS default / Wide (24) |
-| Sample icons | **After** applying, spawns a short-lived child process showing sample status items at the new spacing |
+| Sample | Draws six sample icons at the selected spacing beside the one in effect, to the measured widths |
 | Apply | Writes the preset, then reads the effective values back to verify the result |
 | Restore | Returns to the recorded prior state, including absence |
 | Guidance | States that a target app must be relaunched — or the user logged out — before the change shows |
@@ -63,8 +63,8 @@ third-party libraries.
 ## 3. Design Decisions
 
 **Language / framework: Swift 6, SwiftUI + AppKit, Swift Package Manager.**
-The exact CFPreferences scopes must be addressed directly, and the preview needs
-real `NSStatusItem`s. util-series already has an established GUI-only Swift/SPM
+The exact CFPreferences scopes must be addressed directly, and the app draws
+status-item geometry. util-series already has an established GUI-only Swift/SPM
 shape — share-mounter, load-spinner, url-shelf, instant-translate, grid-edit,
 zip-porter — and instant-translate is the reference project.
 
@@ -110,9 +110,8 @@ review is mandatory.
 ### Phase 2: Features
 
 5. The SwiftUI window, preset picker, and current-state display.
-6. Preview through a child process: apply, spawn the same executable in a preview
-   mode to show its own status items, and let it exit. Settled by measurement;
-   relaunching the app itself is not needed.
+6. An in-window sample drawn to the measured geometry, showing the selected
+   spacing beside the one in effect. Replaces the menu bar preview (below).
 7. Relaunch guidance, a path back to OS defaults before uninstalling, app icon.
 
 **Independently reviewable.**
@@ -192,15 +191,17 @@ intelligence and IR — none of which fit.
   points were measured, so 8 is an interpolation to be confirmed in Phase 1.
 - "Guidance only" was chosen for the relaunch problem, because quitting other
   apps on the user's behalf can destroy unsaved work.
-- The preview uses the app's own real status items. Whether a new item in the
-  same process picks up the new value was measured in Phase 1: it does **not**,
-  so the preview spawns a child process, which matches a fresh process exactly.
-- **A preview *before* applying turned out to be impossible, and was withdrawn
-  (Phase 2).** A child process picks up what is written in the preference
-  domain, not what is selected in a window; there is no way to show a value
-  without writing it. The sample icons therefore appear automatically *after* an
-  apply — which also answers this product's central UX problem, that the change
-  is invisible in every app already running.
+- A preview in the real menu bar was built in Phase 2 and then **withdrawn**.
+  It worked — a child process does pick up a freshly written value — but it can
+  only run *after* a write, and one strip of icons seen once, with nothing to
+  compare it against, turned out to be unjudgeable in practice: the user tried
+  it and could not tell whether anything had changed. The photographs in
+  [preset-appearance](preset-appearance.md) are legible only because four strips
+  share a left edge.
+- The replacement is an **in-window sample**: six icons drawn at the selected
+  spacing beside the one in effect, before applying. It is a scale drawing, and
+  its geometry is pinned by tests to the widths measured on hardware, so it
+  cannot drift away from what it depicts.
 - Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
   available to test on, but the chosen policy is to promise only what has been
   measured rather than widen the verification surface.

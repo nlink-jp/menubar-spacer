@@ -13,8 +13,9 @@ coordinator yet, so launching the app still writes nothing.
 ## Build and test
 
 ```sh
-make test        # swift test (73 cases; the hardware tests skip)
-python3 spikes/test_phase1.py   # 20 measurement-coordinator guards
+make test        # 94 swift cases (hardware tests skip) + 20 coordinator guards
+                 # + scripts/check-docs.py: links resolve, no withdrawn
+                 #   mechanism reappears in the code or the documents
 
 # The only tests that touch the real preference domain. They refuse to run
 # unless both keys are absent, and delete both keys in teardown.
@@ -51,6 +52,9 @@ the output location and the signing.
 - `Sources/MenubarSpacer/{App,ContentView}.swift` — the window shell.
 - `Tests/MenubarSpacerTests/` — plan, preset, restore-decision, coordinator and
   file-store cases, plus the opt-in hardware tests.
+- `Sources/MenubarSpacer/SpacingSample.swift` — the in-window sample: measured
+  geometry (`iconWidth + value`) and the two rows the window draws. Pure numbers,
+  pinned to the photographs by `SpacingSampleTests`.
 - `Sources/SpacingProbe/` — development-only measurement probe. Never copied into
   the `.app`; owns its own preference access so a measurement meant to inform the
   product does not depend on the product's assumptions.
@@ -110,9 +114,9 @@ Full numbers in `docs/en/phase1-results.md`; evidence in
 3. Read-back after every write matched what was written, and the deletion path
    left both keys absent in both scopes.
 
-## Blocking gate before Phase 2 wires the UI
+## The single-instance guard
 
-**The single-instance guard must exist before any control can call `apply`.**
+**Done in Phase 2, and required before any control can call `apply`.**
 The store's `flock` already stops two copies from corrupting the record, but two
 windows both offering to change the same setting is a UX defect on its own, and
 the guard is the org's standard for every Swift GUI app here
@@ -125,19 +129,17 @@ the guard is the org's standard for every Swift GUI app here
    The decision goes in a pure, tested function.
 3. `@main` moves to `enum Main { static func main() }`: a SwiftUI `App` struct
    cannot run code before its Scene.
-4. **Exempt the preview mode.** The preview is a child process of this same
-   executable (see the Phase 1 results); guarding it would make the preview a
-   silent no-op.
 
 ## Gotchas
 
 - A change reaches an app only when that app next launches. The app must say so
   and must never quit other applications.
-- **The preview must be a child process, and can only follow an apply.**
-  Creating status items in the running app after a write shows the *old* spacing
-  — measured, not assumed. A child picks up whatever is written in the domain, so
-  there is no way to preview a value the user has only selected: applying is what
-  makes it showable. `--preview` is exempt from the single-instance guard.
+- **Nothing can show a spacing before it is written**, and a process cannot show
+  one it wrote itself — both measured, not assumed. A menu bar preview built on a
+  child process was withdrawn: it only worked after a write, and one strip seen
+  once proved unjudgeable. `SpacingSample` draws the comparison instead, and its
+  geometry is pinned by tests to `docs/en/preset-appearance.md`. Never let the
+  drawing and the photographs drift apart.
 - `SpacingPreset.matching` returns nil for a state we did not produce (a
   hand-edited `defaults` write). The UI has to describe that state, not assume it.
 - **"There is a backup" means "something of ours is in effect".** The coordinator

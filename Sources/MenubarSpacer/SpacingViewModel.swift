@@ -15,12 +15,9 @@ final class SpacingViewModel: ObservableObject {
     @Published var selection: SpacingPreset
 
     private let coordinator: SpacingCoordinator
-    private let startPreview: (Double) throws -> Void
 
-    init(coordinator: SpacingCoordinator,
-         startPreview: @escaping (Double) throws -> Void = { try PreviewLauncher.start(seconds: $0) }) {
+    init(coordinator: SpacingCoordinator) {
         self.coordinator = coordinator
-        self.startPreview = startPreview
         let state = coordinator.state()
         self.state = state
         self.selection = state.preset ?? .osDefault
@@ -35,15 +32,7 @@ final class SpacingViewModel: ObservableObject {
 
     func apply() {
         do {
-            let outcome = try coordinator.apply(selection)
-            var text = OutcomeMessage.apply(outcome)
-            // The change is invisible in every app that is already running, so
-            // the app shows it itself — in a child process, the only kind that
-            // can pick up a spacing written a moment ago.
-            if outcome.changedSomething, (try? startPreview(Launch.defaultPreviewSeconds)) != nil {
-                text += " " + OutcomeMessage.previewNote
-            }
-            message = text
+            message = OutcomeMessage.apply(try coordinator.apply(selection))
         } catch {
             message = OutcomeMessage.failure(error)
         }
@@ -60,16 +49,4 @@ final class SpacingViewModel: ObservableObject {
         selection = state.preset ?? .osDefault
     }
 
-    /// Shows the spacing **that is in effect now** — not the one selected in the
-    /// window. A preview of an unapplied value is impossible: a process takes
-    /// the spacing that was in effect when it launched, so there is nothing to
-    /// show until the value has been written.
-    func showCurrentSpacing() {
-        do {
-            try startPreview(Launch.defaultPreviewSeconds)
-            message = OutcomeMessage.previewNote
-        } catch {
-            message = "The sample icons could not be shown. Nothing was changed."
-        }
-    }
 }

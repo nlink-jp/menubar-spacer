@@ -26,14 +26,15 @@ points — about the width of two application menus.
 
 ## Why it is hard to see live
 
-A single row is hard to judge, and the app's own preview shows exactly that: one
-row, once, with nothing to compare it against. The difference is obvious in the
-table above only because four rows are stacked and share a left edge.
+A single row is hard to judge. The app's first attempt showed exactly that — one
+strip of real icons in the menu bar, once, with nothing beside it — and it was
+tried and found unjudgeable. The difference is obvious in the image above only
+because four strips are stacked and share a left edge.
 
-This is a real limitation of the current preview, not a limitation of the
-mechanism. The spacing does change, visibly, by a fifth to a quarter of the
-width — but a person cannot hold the previous row in their head accurately
-enough to see it in isolation.
+This is a limitation of showing one row, not of the mechanism. The spacing does
+change, visibly, by a fifth to a quarter of the width — but a person cannot hold
+the previous row in their head accurately enough to see it in isolation. The app
+therefore draws the comparison in its own window, to these same widths.
 
 ## How these were taken
 

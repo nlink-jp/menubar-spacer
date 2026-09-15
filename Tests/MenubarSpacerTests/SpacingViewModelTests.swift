@@ -5,21 +5,15 @@ import XCTest
 final class SpacingViewModelTests: XCTestCase {
     private var preferences: StubSpacingPreferences!
     private var backups: StubBackupStore!
-    private var previewedSeconds: [Double] = []
-
     private func makeModel() -> SpacingViewModel {
-        SpacingViewModel(
-            coordinator: SpacingCoordinator(preferences: preferences, backups: backups,
-                                            now: { Date(timeIntervalSince1970: 0) }),
-            startPreview: { self.previewedSeconds.append($0) }
-        )
+        SpacingViewModel(coordinator: SpacingCoordinator(preferences: preferences, backups: backups,
+                                                         now: { Date(timeIntervalSince1970: 0) }))
     }
 
     override func setUp() {
         super.setUp()
         preferences = StubSpacingPreferences()
         backups = StubBackupStore()
-        previewedSeconds = []
     }
 
     func testItOpensOnThePresetTheMacIsAlreadyAt() {
@@ -44,38 +38,12 @@ final class SpacingViewModelTests: XCTestCase {
         XCTAssertEqual(preferences.currentHost, .uniform(8))
         XCTAssertEqual(model.state.currentHost, .uniform(8), "the view must show the new state")
         XCTAssertEqual(model.message,
-                       OutcomeMessage.apply(.applied(.uniform(8))) + " " + OutcomeMessage.previewNote)
+                       OutcomeMessage.apply(.applied(.uniform(8))))
         XCTAssertTrue(model.canUndo)
     }
 
-    /// The change is invisible in every app that is already running, so a
-    /// successful apply has to show its own result.
-    func testASuccessfulApplyShowsTheResultItself() {
-        let model = makeModel()
-        model.selection = .wide
-        model.apply()
-        XCTAssertEqual(previewedSeconds, [Launch.defaultPreviewSeconds])
-    }
 
-    func testAnApplyThatChangedNothingDoesNotPutIconsUp() {
-        let model = makeModel()
-        model.selection = .osDefault      // the Mac is already at the default
-        model.apply()
 
-        XCTAssertEqual(previewedSeconds, [], "nothing changed, so there is nothing to show")
-        XCTAssertEqual(model.message, OutcomeMessage.apply(.alreadyApplied(.unset)))
-    }
-
-    func testAnIgnoredWriteDoesNotClaimToShowTheResult() {
-        preferences.readBackOverride = .unset
-        let model = makeModel()
-        model.selection = .wide
-        model.apply()
-
-        XCTAssertEqual(previewedSeconds, [])
-        XCTAssertEqual(model.message, OutcomeMessage.apply(.noEffect(expected: .uniform(24),
-                                                                     actual: .unset)))
-    }
 
     func testUndoIsOfferedOnlyWhileSomethingOfOursIsInEffect() {
         let model = makeModel()
@@ -124,17 +92,9 @@ final class SpacingViewModelTests: XCTestCase {
 
         XCTAssertEqual(preferences.currentHost, .unset)
         XCTAssertEqual(model.message,
-                       OutcomeMessage.apply(.applied(.unset)) + " " + OutcomeMessage.previewNote)
+                       OutcomeMessage.apply(.applied(.unset)))
     }
 
-    func testShowingTheCurrentSpacingStartsAChildAndChangesNothing() {
-        let model = makeModel()
-        model.showCurrentSpacing()
-
-        XCTAssertEqual(previewedSeconds, [Launch.defaultPreviewSeconds])
-        XCTAssertTrue(preferences.appliedOperations.isEmpty)
-        XCTAssertEqual(backups.saveCount, 0)
-    }
 
     func testApplyingOverAnOutsideChangeTellsTheUserWhatItReplaced() {
         let model = makeModel()
@@ -148,6 +108,6 @@ final class SpacingViewModelTests: XCTestCase {
         XCTAssertEqual(model.message,
                        OutcomeMessage.apply(.appliedOverExternalChange(.uniform(24),
                                                                        replaced: .uniform(30)))
-                           + " " + OutcomeMessage.previewNote)
+                          )
     }
 }

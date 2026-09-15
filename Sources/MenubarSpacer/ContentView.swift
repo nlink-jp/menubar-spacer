@@ -21,10 +21,11 @@ struct ContentView: View {
             .pickerStyle(.radioGroup)
             .labelsHidden()
 
+            SpacingSampleView(current: model.state.currentHost, selected: model.selection)
+
             HStack(spacing: 10) {
                 Button("Apply") { model.apply() }
                     .keyboardShortcut(.defaultAction)
-                Button("Show current spacing") { model.showCurrentSpacing() }
                 Button("Undo my changes") { model.restore() }
                     .disabled(!model.canUndo)
             }
@@ -82,6 +83,5 @@ enum SpacingDescription {
 #Preview {
     ContentView(model: SpacingViewModel(
         coordinator: SpacingCoordinator(preferences: StubSpacingPreferences(currentHost: .uniform(8)),
-                                        backups: StubBackupStore()),
-        startPreview: { _ in }))
+                                        backups: StubBackupStore())))
 }

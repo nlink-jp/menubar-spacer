@@ -2,8 +2,7 @@
 
 2026-09-15; macOS 27.0 (26A428), Apple Silicon.
 
-**All three open questions are answered, and both the preset values and the
-preview design are settled.** Two complete runs produced identical numbers, and
+**All three open questions are answered, and the preset values are settled.** Two complete runs produced identical numbers, and
 the preferences were restored to their original absent state after each.
 
 ## Method
@@ -60,9 +59,12 @@ whatever spacing was in effect when it started, no matter when its items are
 created. Writing the preference and spawning a short-lived child is enough — the
 app does not need to relaunch itself.
 
-**Consequence for the product.** The preview is a child process: apply the value,
-spawn the same executable in a preview mode, let it show its own status items,
-and let it exit. The relaunch-the-app fallback named in the RFP is not needed.
+**Consequence for the product.** Nothing can show a spacing that has not been
+written, and the app cannot show one it wrote itself. A child process was built
+on this finding and then withdrawn — it worked, but a single strip of icons seen
+once is not judgeable. The app draws an in-window sample instead, to these
+measured widths, and this is why: there is no way to show the real thing before
+applying.
 
 ## 3. Read-back after a write
 

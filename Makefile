@@ -61,6 +61,8 @@ verify-release:
 ## test: run tests
 test:
 	swift test
+	python3 spikes/test_phase1.py
+	python3 scripts/check-docs.py
 
 ## run: build and run (debug)
 run:
