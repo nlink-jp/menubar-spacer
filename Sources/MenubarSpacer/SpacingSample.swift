@@ -41,7 +41,6 @@ enum SpacingSample {
 /// photographs are legible only because they are stacked this way.
 struct SpacingSampleRow: View {
     let preset: SpacingPreset
-    let isSelected: Bool
     let isCurrent: Bool
 
     /// Every name is checked to resolve by `SpacingSampleTests`: a symbol that
@@ -51,12 +50,9 @@ struct SpacingSampleRow: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 8) {
-            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
-                .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-                .font(.system(size: 14))
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    Text(preset.title).font(.callout.weight(isSelected ? .semibold : .regular))
+                    Text(preset.title).font(.callout)
                     Text("\(Int(SpacingSample.totalWidth(for: preset.value))) pt")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
@@ -88,24 +84,28 @@ struct SpacingSampleRow: View {
 }
 
 /// The picker and the sample are the same thing: every preset drawn to the
-/// measured widths, on a shared left edge, and choosing one means clicking it.
+/// measured widths, on a shared left edge, and choosing one means picking it.
+///
+/// A real `Picker` rather than a column of buttons: the radio, the keyboard
+/// navigation and the focus ring are then the system's, which is why the ring
+/// lands on the group rather than decorating whichever row happened to be first.
 struct SpacingSampleView: View {
     let current: SpacingSettings
     @Binding var selection: SpacingPreset
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(SpacingPreset.allCases) { preset in
-                Button {
-                    selection = preset
-                } label: {
+            Picker(selection: $selection) {
+                ForEach(SpacingPreset.allCases) { preset in
                     SpacingSampleRow(preset: preset,
-                                     isSelected: preset == selection,
                                      isCurrent: SpacingSample.value(of: current) == .some(preset.value))
+                        .tag(preset)
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(preset == selection ? [.isSelected] : [])
+            } label: {
+                EmptyView()
             }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
 
             if SpacingSample.value(of: current) == nil {
                 Text("The spacing in effect was set outside this app, so it is not one of these.")
