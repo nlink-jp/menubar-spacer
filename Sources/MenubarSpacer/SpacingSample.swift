@@ -51,25 +51,32 @@ struct SpacingSampleRow: View {
 
     /// A fixed label column, so every strip starts at the same x — the shared
     /// left edge is what makes the four comparable at a glance.
-    static let labelColumnWidth: CGFloat = 132
+    static let labelColumnWidth: CGFloat = 186
+    /// The strip's own height: 22pt icons plus 3pt above and below.
+    static let bandHeight: CGFloat = 28
 
     /// Name and strip sit on **one horizontal band**, so the radio the system
     /// draws to the left of this label is unambiguously this row's. Stacking the
     /// name above the strip put each radio between two bands, and which one it
     /// belonged to could not be read.
+    ///
+    /// The label is one line and the band is exactly the strip's height, so the
+    /// radio — which the system aligns to the label's first line — lands on the
+    /// strip's centre line rather than above it.
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(preset.title)
                     .font(.callout.weight(isSelected ? .semibold : .regular))
                 Text(isCurrent ? "\(width) pt · in effect" : "\(width) pt")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
             }
-            .frame(width: Self.labelColumnWidth, alignment: .leading)
+            .frame(width: Self.labelColumnWidth, height: Self.bandHeight, alignment: .leading)
 
             strip
         }
+        .frame(height: Self.bandHeight)
         .padding(.vertical, 2)
         .contentShape(Rectangle())
     }
