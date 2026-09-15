@@ -13,7 +13,7 @@ coordinator yet, so launching the app still writes nothing.
 ## Build and test
 
 ```sh
-make test        # swift test (44 cases; the hardware tests skip)
+make test        # swift test (73 cases; the hardware tests skip)
 python3 spikes/test_phase1.py   # 20 measurement-coordinator guards
 
 # The only tests that touch the real preference domain. They refuse to run
@@ -31,8 +31,9 @@ the output location and the signing.
 ## Structure
 
 - `Sources/MenubarSpacer/SpacingSettings.swift` — `SpacingKey` (the only two keys
-  that may be written), `StoredValue` (absent vs. value), `SpacingSettings`, and
-  `SpacingPlan.operations` which emits the minimal write/delete list. Pure.
+  that may be written), `StoredValue` (absent / integer / a value preserved
+  verbatim), `SpacingSettings`, and `SpacingPlan.operations` which emits the
+  minimal write/delete list. Pure.
 - `Sources/MenubarSpacer/SpacingPreset.swift` — the four presets, all four
   values measured on hardware. Pure.
 - `Sources/MenubarSpacer/BackupRecord.swift` — the one backup record and
@@ -42,7 +43,9 @@ the output location and the signing.
   protocols, the CFPreferences-backed implementation (every write verified by a
   read-back), and an in-memory stub for previews and tests.
 - `Sources/MenubarSpacer/BackupStore.swift` — the one backup record on disk,
-  written atomically; an unreadable file throws instead of reading as "no backup".
+  written atomically; an unreadable file throws instead of reading as "no backup",
+  and is moved aside rather than deleted. Owns the `flock` that every mutating
+  path runs under.
 - `Sources/MenubarSpacer/SpacingCoordinator.swift` — apply, restore and the
   state the UI displays. Owns the ordering rules below.
 - `Sources/MenubarSpacer/{App,ContentView}.swift` — the window shell.
@@ -67,12 +70,24 @@ the output location and the signing.
 - **Tests are mandatory** — the model layer is pure precisely so it can be tested
   without touching the preference domain. Only `HardwareEndToEndTests` may touch
   it, and only behind its environment variable.
-- **The backup is durable before the first write, never after it.** If a write
-  fails, the way back must already be on disk.
+- **The backup is stored before the first write, never after it.** If a write
+  fails, the way back must already be on disk. (Crash-safe, not power-safe: the
+  save is atomic but not fsynced.)
+- **The record is captured from observation, never from intention.** `applied`
+  is re-saved from the state read back *after* a write, so a half-landed write
+  leaves the record describing the Mac as it really is.
+- **No value read from a Mac is "implausible".** Never range-check it: a hand-set
+  100 is the user's state, and refusing to restore it strands exactly the Macs
+  furthest from default. Validation applies to decoding a file, not to observing
+  a Mac.
+- **A value the app cannot interpret is preserved verbatim** (`StoredValue.other`).
+  `defaults write -g … 8` without `-int` stores a *string*; coercing it to an
+  integer would record "absent" and make Restore delete a key the user had set.
 - **An unreadable backup blocks every value preset**, because overwriting it
   would destroy the only record of what this Mac held beforehand. Returning to
   the OS default stays available: it needs no record and cannot make recovery
-  worse.
+  worse. The damaged file is moved aside, never deleted, and only after a write
+  actually happened.
 - **Requesting no TCC permission is a requirement, not an accident.** Do not add
   Accessibility or any other grant without a deliberate scope decision.
 - Docs in sync: `README.md` and `README.ja.md` in the same commit.
@@ -92,6 +107,25 @@ Full numbers in `docs/en/phase1-results.md`; evidence in
 3. Read-back after every write matched what was written, and the deletion path
    left both keys absent in both scopes.
 
+## Blocking gate before Phase 2 wires the UI
+
+**The single-instance guard must exist before any control can call `apply`.**
+The store's `flock` already stops two copies from corrupting the record, but two
+windows both offering to change the same setting is a UX defect on its own, and
+the guard is the org's standard for every Swift GUI app here
+(`feedback_menubar_duplicate_instance_guard`). Required shape:
+
+1. `LSMultipleInstancesProhibited` in `Info.plist` — present already; covers
+   LaunchServices launches.
+2. A startup check (`NSRunningApplication.runningApplications(withBundleIdentifier:)`)
+   that exits 0 with one stderr line — covers direct execution and `open -n`.
+   The decision goes in a pure, tested function.
+3. `@main` moves to `enum Main { static func main() }`: a SwiftUI `App` struct
+   cannot run code before its Scene.
+4. **Exempt the preview mode.** The preview is a child process of this same
+   executable (see the Phase 1 results); guarding it would make the preview a
+   silent no-op.
+
 ## Gotchas
 
 - A change reaches an app only when that app next launches. The app must say so
@@ -102,10 +136,21 @@ Full numbers in `docs/en/phase1-results.md`; evidence in
 - `SpacingPreset.matching` returns nil for a state we did not produce (a
   hand-edited `defaults` write). The UI has to describe that state, not assume it.
 - **"There is a backup" means "something of ours is in effect".** The coordinator
-  drops the record once the Mac is back at its original state, so the UI can read
-  that flag directly.
+  drops the record once the Mac is back at its original state — best effort: a
+  completed write is never reported as a failure because the record would not
+  delete.
+- **`BackupStatus` has three cases, not two booleans.** A UI that reads "no
+  backup" when the record is merely unreadable would tell the user nothing is in
+  effect at the exact moment something is. The case is `absent`, not `none`,
+  because `BackupStatus.none` collides with `Optional.none`.
 - **A restore is refused when someone else changed the keys after our write**
-  (`refusedExternalChange`), rather than silently discarding their change.
+  (`refusedExternalChange`); an apply proceeds but reports
+  `appliedOverExternalChange`. Refusing an explicit request would be
+  obstruction; undoing over an unexplained state would be destruction.
+- **A state that is partly ours is ours to clean up.**
+  `RestorePlanner.isExplainedByOurWrite` accepts any state whose keys each hold
+  either the original or the last observed value, which covers a half-landed
+  write and a crash between the write and the record correction.
 - **A write that does not take is `noEffect`, not success.** These keys are
   undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global

@@ -32,9 +32,11 @@ protocol SpacingPreferenceWriting {
 }
 
 enum SpacingWriteError: Error, Equatable {
-    case synchronizationFailed
-    /// The write went through but the scope does not hold what was asked for.
-    case readBackMismatch(expected: SpacingSettings, actual: SpacingSettings)
+    /// The flush failed. `CFPreferencesSetMultiple` has already run by then, so
+    /// the state read back afterwards travels with the error.
+    case synchronizationFailed(actual: SpacingSettings)
+    /// A recorded value could not be turned back into a property list.
+    case unrestorableValue(SpacingKey)
 }
 
 /// Reads and writes the two keys in the current user's global preference domain
@@ -43,6 +45,11 @@ enum SpacingWriteError: Error, Equatable {
 /// construction: `WriteOperation` cannot name one.
 struct SystemSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWriting {
     func read(_ scope: PreferenceScope) -> SpacingSettings {
+        if scope == .currentHost {
+            // Only the scope this app writes needs a flush before reading.
+            CFPreferencesSynchronize(kCFPreferencesAnyApplication, kCFPreferencesCurrentUser,
+                                     scope.host)
+        }
         var settings = SpacingSettings.unset
         for key in SpacingKey.allCases {
             settings[key] = Self.value(for: key, scope: scope)
@@ -52,12 +59,22 @@ struct SystemSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWrit
 
     @discardableResult
     func apply(_ operations: [WriteOperation]) throws -> SpacingSettings {
-        var toSet: [String: Int] = [:]
+        var toSet: [String: Any] = [:]
         var toRemove: [String] = []
         for operation in operations {
             switch operation {
-            case let .set(key, value): toSet[key.rawValue] = value
-            case let .delete(key): toRemove.append(key.rawValue)
+            case let .set(key, value):
+                switch value {
+                case .absent:
+                    toRemove.append(key.rawValue)
+                case let .integer(number):
+                    toSet[key.rawValue] = number
+                case let .other(opaque):
+                    guard let raw = opaque.value else { throw SpacingWriteError.unrestorableValue(key) }
+                    toSet[key.rawValue] = raw
+                }
+            case let .delete(key):
+                toRemove.append(key.rawValue)
             }
         }
 
@@ -68,21 +85,46 @@ struct SystemSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWrit
                                  kCFPreferencesCurrentHost)
         guard CFPreferencesSynchronize(kCFPreferencesAnyApplication, kCFPreferencesCurrentUser,
                                        kCFPreferencesCurrentHost) else {
-            throw SpacingWriteError.synchronizationFailed
+            throw SpacingWriteError.synchronizationFailed(actual: read(.currentHost))
         }
         return read(.currentHost)
     }
 
+    /// Reads one key losslessly. Anything that is not a plain integer — a string
+    /// written by `defaults write -g … 8` without `-int`, a float, a boolean — is
+    /// preserved verbatim instead of being coerced, because the record of what
+    /// this Mac held has to be true even when the value is not one we produce.
     private static func value(for key: SpacingKey, scope: PreferenceScope) -> StoredValue {
-        CFPreferencesSynchronize(kCFPreferencesAnyApplication, kCFPreferencesCurrentUser, scope.host)
-        let raw = CFPreferencesCopyValue(
+        guard let raw = CFPreferencesCopyValue(
             key.rawValue as CFString,
             kCFPreferencesAnyApplication,
             kCFPreferencesCurrentUser,
             scope.host
-        )
-        guard let number = raw as? NSNumber else { return .absent }
-        return .integer(number.intValue)
+        ) else { return .absent }
+
+        let typeID = CFGetTypeID(raw)
+        if typeID == CFNumberGetTypeID(), !CFNumberIsFloatType(raw as! CFNumber),
+           let number = raw as? NSNumber {
+            return .integer(number.intValue)
+        }
+        let summary = Self.summarize(raw, typeID: typeID)
+        guard let opaque = OpaqueValue(capturing: raw, summary: summary) else {
+            return .other(OpaqueValue(plist: Data(), summary: summary))
+        }
+        return .other(opaque)
+    }
+
+    private static func summarize(_ raw: CFPropertyList, typeID: CFTypeID) -> String {
+        if typeID == CFBooleanGetTypeID() {
+            return "boolean \((raw as? NSNumber)?.boolValue == true ? "true" : "false")"
+        }
+        if typeID == CFNumberGetTypeID() {
+            return "decimal \((raw as? NSNumber)?.stringValue ?? "?")"
+        }
+        if typeID == CFStringGetTypeID() {
+            return "text \"\(raw as? String ?? "?")\""
+        }
+        return "an unsupported value"
     }
 }
 
@@ -92,10 +134,14 @@ struct SystemSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWrit
 final class StubSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceWriting {
     var currentHost: SpacingSettings
     var anyHost: SpacingSettings
-    /// Set to simulate an OS that accepts the write but does not honour it.
+    /// Set to simulate an OS that accepts the write but does not honour it, or
+    /// honours only part of it.
     var readBackOverride: SpacingSettings?
     var writeError: SpacingWriteError?
     private(set) var appliedOperations: [[WriteOperation]] = []
+    /// Shared with a `StubBackupStore` so a test can assert the order of store
+    /// calls and writes, not merely their counts.
+    var journal: StubBackupStore?
 
     init(currentHost: SpacingSettings = .unset, anyHost: SpacingSettings = .unset) {
         self.currentHost = currentHost
@@ -111,11 +157,12 @@ final class StubSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceW
 
     @discardableResult
     func apply(_ operations: [WriteOperation]) throws -> SpacingSettings {
+        journal?.note("write")
         appliedOperations.append(operations)
         if let writeError { throw writeError }
         for operation in operations {
             switch operation {
-            case let .set(key, value): currentHost[key] = .integer(value)
+            case let .set(key, value): currentHost[key] = value
             case let .delete(key): currentHost[key] = .absent
             }
         }

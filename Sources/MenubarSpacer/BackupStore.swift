@@ -9,14 +9,26 @@ protocol BackupStoring {
     func load() throws -> BackupRecord?
     func save(_ record: BackupRecord) throws
     func clear() throws
+    /// Moves an unreadable record aside instead of deleting it. A file that
+    /// cannot be decoded today may still be readable by a person, and the read
+    /// may have failed for a transient reason.
+    func quarantine() throws
+
+    /// Runs `body` while holding exclusive access across every instance of this
+    /// app on this Mac. The read-current → load → save → write sequence is a
+    /// read-modify-write over shared state: without this, a second instance can
+    /// record a state this app itself produced as the user's original.
+    func withExclusiveAccess<T>(_ body: () throws -> T) throws -> T
 }
 
 enum BackupStoreError: Error, Equatable {
     /// A record file exists but is not readable as one.
     case unreadable(String)
+    case lockFailed(String)
 }
 
-/// A single JSON file under Application Support, written atomically.
+/// A single JSON file under Application Support, written atomically, guarded by
+/// a lock file beside it.
 struct FileBackupStore: BackupStoring {
     let url: URL
 
@@ -46,8 +58,7 @@ struct FileBackupStore: BackupStoring {
     }
 
     func save(_ record: BackupRecord) throws {
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
-                                                withIntermediateDirectories: true)
+        try createContainer()
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         try encoder.encode(record).write(to: url, options: .atomic)
@@ -57,31 +68,96 @@ struct FileBackupStore: BackupStoring {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         try FileManager.default.removeItem(at: url)
     }
+
+    func quarantine() throws {
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        let stamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        let destination = url.deletingLastPathComponent()
+            .appendingPathComponent(url.lastPathComponent + ".damaged-" + stamp)
+        try FileManager.default.moveItem(at: url, to: destination)
+    }
+
+    func withExclusiveAccess<T>(_ body: () throws -> T) throws -> T {
+        try createContainer()
+        let lockURL = url.deletingLastPathComponent().appendingPathComponent("lock")
+        let descriptor = open(lockURL.path, O_RDWR | O_CREAT, 0o644)
+        guard descriptor >= 0 else {
+            throw BackupStoreError.lockFailed("open(\(lockURL.lastPathComponent)) failed: \(errno)")
+        }
+        defer { close(descriptor) }
+        guard flock(descriptor, LOCK_EX) == 0 else {
+            throw BackupStoreError.lockFailed("flock failed: \(errno)")
+        }
+        defer { flock(descriptor, LOCK_UN) }
+        return try body()
+    }
+
+    private func createContainer() throws {
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+                                                withIntermediateDirectories: true)
+    }
 }
 
 /// An in-memory store for previews and tests.
 final class StubBackupStore: BackupStoring {
     var record: BackupRecord?
     var loadError: BackupStoreError?
+    /// Simulates a record file that will not delete.
+    var clearError: BackupStoreError?
     private(set) var saveCount = 0
     private(set) var clearCount = 0
+    private(set) var quarantineCount = 0
+    private(set) var lockDepth = 0
+    /// Every load/save/clear/quarantine and the writes the coordinator performs,
+    /// in order, so a test can assert the sequence and not just the totals.
+    private(set) var journal: [String] = []
+    /// Runs the first time exclusive access is taken, to simulate another
+    /// instance acting in the window the lock is supposed to close.
+    var onLock: (() -> Void)?
 
     init(record: BackupRecord? = nil) {
         self.record = record
     }
 
+    func note(_ entry: String) { journal.append(entry) }
+
     func load() throws -> BackupRecord? {
+        journal.append("load")
         if let loadError { throw loadError }
         return record
     }
 
     func save(_ record: BackupRecord) throws {
+        journal.append("save")
         saveCount += 1
         self.record = record
     }
 
     func clear() throws {
+        journal.append("clear")
+        if let clearError { throw clearError }
         clearCount += 1
         record = nil
+    }
+
+    func quarantine() throws {
+        journal.append("quarantine")
+        quarantineCount += 1
+        loadError = nil
+        record = nil
+    }
+
+    func withExclusiveAccess<T>(_ body: () throws -> T) throws -> T {
+        journal.append("lock")
+        lockDepth += 1
+        if let onLock {
+            self.onLock = nil
+            onLock()
+        }
+        defer {
+            lockDepth -= 1
+            journal.append("unlock")
+        }
+        return try body()
     }
 }

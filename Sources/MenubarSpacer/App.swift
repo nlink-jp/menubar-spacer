@@ -19,6 +19,14 @@ struct MenubarSpacerApp: App {
 enum AppInfo {
     /// The bundle's version, or "dev" when run outside a built `.app`.
     static var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+        version(bundleValue: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString"))
+    }
+
+    /// The display rule, separated from the bundle lookup so it can be tested.
+    static func version(bundleValue: Any?) -> String {
+        guard let value = bundleValue as? String,
+              !value.trimmingCharacters(in: .whitespaces).isEmpty
+        else { return "dev" }
+        return value
     }
 }

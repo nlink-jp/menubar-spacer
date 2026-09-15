@@ -31,6 +31,16 @@ enum SpacingPreset: String, CaseIterable, Identifiable, Sendable {
 
     var settings: SpacingSettings { .uniform(value) }
 
+    /// What this choice is called on screen.
+    var title: String {
+        switch self {
+        case .minimum: return "Minimum"
+        case .narrow: return "Narrow"
+        case .osDefault: return "macOS default"
+        case .wide: return "Wide"
+        }
+    }
+
     /// The preset matching a live preference state, or `nil` when the state came
     /// from somewhere else (a hand-edited `defaults` write, another tool).
     static func matching(_ settings: SpacingSettings) -> SpacingPreset? {

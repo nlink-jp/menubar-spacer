@@ -13,6 +13,7 @@ final class SpacingCoordinatorTests: XCTestCase {
         super.setUp()
         preferences = StubSpacingPreferences()
         backups = StubBackupStore()
+        preferences.journal = backups            // one shared ordering journal
         coordinator = SpacingCoordinator(preferences: preferences, backups: backups,
                                          now: { self.fixedDate })
     }
@@ -20,21 +21,36 @@ final class SpacingCoordinatorTests: XCTestCase {
     // MARK: apply
 
     func testApplyingAPresetWritesBothKeysAndRecordsTheWayBack() throws {
-        let outcome = try coordinator.apply(.minimum)
-
-        XCTAssertEqual(outcome, .applied(.uniform(4)))
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
         XCTAssertEqual(preferences.currentHost, .uniform(4))
         XCTAssertEqual(backups.record?.original, .unset)
         XCTAssertEqual(backups.record?.applied, .uniform(4))
         XCTAssertEqual(backups.record?.capturedAt, fixedDate)
     }
 
+    /// The ordering itself, not a side effect of it: the record must be stored
+    /// before the write and corrected after it, all inside one lock.
+    func testTheRecordIsStoredBeforeTheWriteAndCorrectedAfterIt() throws {
+        _ = try coordinator.apply(.wide)
+        XCTAssertEqual(backups.journal, ["lock", "load", "save", "write", "save", "unlock"])
+    }
+
+    func testEveryMutatingPathRunsUnderTheLock() throws {
+        _ = try coordinator.apply(.wide)
+        _ = try coordinator.restore()
+        for (index, entry) in backups.journal.enumerated() where entry == "write" {
+            let opened = backups.journal[..<index].filter { $0 == "lock" }.count
+            let closed = backups.journal[..<index].filter { $0 == "unlock" }.count
+            XCTAssertGreaterThan(opened, closed, "a write happened outside the lock")
+        }
+    }
+
     func testTheBackupIsStoredBeforeTheFirstWrite() throws {
-        // If the write fails, the way back must already be on disk.
-        preferences.writeError = .synchronizationFailed
+        preferences.writeError = .synchronizationFailed(actual: .unset)
         XCTAssertThrowsError(try coordinator.apply(.wide))
         XCTAssertEqual(backups.record?.original, .unset)
-        XCTAssertEqual(backups.saveCount, 1)
+        XCTAssertEqual(backups.journal.firstIndex(of: "save"),
+                       backups.journal.firstIndex(of: "write").map { $0 - 1 })
     }
 
     func testTheOriginalSurvivesASecondApply() throws {
@@ -43,88 +59,127 @@ final class SpacingCoordinatorTests: XCTestCase {
         _ = try coordinator.apply(.wide)
 
         XCTAssertEqual(preferences.currentHost, .uniform(24))
-        // Not 4: the record must keep the state from before this app's first write.
         XCTAssertEqual(backups.record?.original, .uniform(12))
         XCTAssertEqual(backups.record?.applied, .uniform(24))
     }
 
+    /// A pre-app value far outside anything this app would produce still has to
+    /// come back. This is the case that used to be recorded and then rejected.
+    func testAnUnusualPreexistingValueIsRecordedAndRestored() throws {
+        preferences.currentHost = .uniform(100)
+
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
+        XCTAssertEqual(backups.record?.original, .uniform(100))
+        XCTAssertEqual(try coordinator.restore(), .restored(.uniform(100)))
+        XCTAssertEqual(preferences.currentHost, .uniform(100))
+    }
+
     func testApplyingTheSameValueTwiceWritesNothingTheSecondTime() throws {
         _ = try coordinator.apply(.narrow)
-        let outcome = try coordinator.apply(.narrow)
-
-        XCTAssertEqual(outcome, .alreadyApplied(.uniform(8)))
+        XCTAssertEqual(try coordinator.apply(.narrow), .alreadyApplied(.uniform(8)))
         XCTAssertEqual(preferences.appliedOperations.count, 1)
     }
 
     func testOnlyTheDifferingKeyIsWritten() throws {
         preferences.currentHost = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)
         _ = try coordinator.apply(.minimum)
-
-        XCTAssertEqual(preferences.appliedOperations, [[.set(key: .selectionPadding, value: 4)]])
+        XCTAssertEqual(preferences.appliedOperations,
+                       [[.set(key: .selectionPadding, value: .integer(4))]])
     }
 
     func testReturningToTheOriginalDropsTheBackup() throws {
         _ = try coordinator.apply(.wide)
-        XCTAssertNotNil(backups.record)
-
-        let outcome = try coordinator.apply(.osDefault)
-
-        XCTAssertEqual(outcome, .applied(.unset))
-        // "No backup" now means "nothing of ours is in effect".
+        XCTAssertEqual(try coordinator.apply(.osDefault), .applied(.unset))
         XCTAssertNil(backups.record)
     }
 
-    func testAnIgnoredWriteIsReportedRatherThanCalledSuccess() throws {
-        // The OS accepts the write but the scope does not hold it.
-        preferences.readBackOverride = .unset
-        let outcome = try coordinator.apply(.wide)
+    // MARK: apply — the write did not fully land
 
-        XCTAssertEqual(outcome, .noEffect(expected: .uniform(24), actual: .unset))
-        // The record stays: something may still have been written.
-        XCTAssertNotNil(backups.record)
+    func testAnIgnoredWriteIsReportedRatherThanCalledSuccess() throws {
+        preferences.readBackOverride = .unset
+        XCTAssertEqual(try coordinator.apply(.wide), .noEffect(expected: .uniform(24), actual: .unset))
     }
+
+    /// After a half-landed write the record must describe the Mac, not the
+    /// target — otherwise the next restore accuses an outsider of our own mess.
+    func testAHalfLandedWriteLeavesARecordThatMatchesTheMac() throws {
+        preferences.currentHost = .uniform(12)
+        let half = SpacingSettings(spacing: .integer(24), selectionPadding: .integer(12))
+        preferences.readBackOverride = half
+
+        XCTAssertEqual(try coordinator.apply(.wide), .noEffect(expected: .uniform(24), actual: half))
+        XCTAssertEqual(backups.record?.original, .uniform(12))
+        XCTAssertEqual(backups.record?.applied, half)
+
+        preferences.readBackOverride = nil
+        XCTAssertEqual(try coordinator.restore(), .restored(.uniform(12)))
+    }
+
+    func testAHalfLandedRestoreCanBeRetried() throws {
+        _ = try coordinator.apply(.wide)
+        let half = SpacingSettings(spacing: .absent, selectionPadding: .integer(24))
+        preferences.readBackOverride = half
+
+        XCTAssertEqual(try coordinator.restore(), .noEffect(expected: .unset, actual: half))
+
+        preferences.readBackOverride = nil
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+        XCTAssertNil(backups.record)
+    }
+
+    // MARK: apply — someone else changed the keys
+
+    func testApplyingOverAnExternalChangeSaysSo() throws {
+        _ = try coordinator.apply(.minimum)
+        preferences.currentHost = .uniform(30)   // a hand-run `defaults write`
+
+        XCTAssertEqual(try coordinator.apply(.wide),
+                       .appliedOverExternalChange(.uniform(24), replaced: .uniform(30)))
+        // The way back is still the state from before this app ever ran.
+        XCTAssertEqual(backups.record?.original, .unset)
+    }
+
+    // MARK: apply — the record cannot be read
 
     func testAnUnreadableBackupBlocksAValuePreset() {
         backups.loadError = .unreadable("damaged")
         XCTAssertThrowsError(try coordinator.apply(.minimum)) { error in
             XCTAssertEqual(error as? BackupStoreError, .unreadable("damaged"))
         }
-        // Nothing was written, and the only record of the original is intact.
         XCTAssertTrue(preferences.appliedOperations.isEmpty)
         XCTAssertEqual(backups.saveCount, 0)
-        XCTAssertEqual(backups.clearCount, 0)
+        XCTAssertEqual(backups.quarantineCount, 0)
     }
 
     func testReturningToTheOSDefaultStaysAvailableWithAnUnreadableBackup() throws {
         preferences.currentHost = .uniform(24)
         backups.loadError = .unreadable("damaged")
 
-        let outcome = try coordinator.apply(.osDefault)
-
-        XCTAssertEqual(outcome, .applied(.unset))
+        XCTAssertEqual(try coordinator.apply(.osDefault), .applied(.unset))
         XCTAssertEqual(preferences.currentHost, .unset)
-        // The unusable file is cleared once the Mac is back at the OS default.
-        XCTAssertEqual(backups.clearCount, 1)
-        XCTAssertEqual(backups.saveCount, 0)
+        // Moved aside, not deleted: it may still be readable by a person.
+        XCTAssertEqual(backups.quarantineCount, 1)
+        XCTAssertEqual(backups.clearCount, 0)
+    }
+
+    /// A damaged record must survive an action that wrote nothing — including a
+    /// read failure that was only transient.
+    func testAnUnreadableBackupIsUntouchedWhenNothingIsWritten() throws {
+        backups.loadError = .unreadable("transient I/O error")
+
+        XCTAssertEqual(try coordinator.apply(.osDefault), .alreadyApplied(.unset))
+        XCTAssertEqual(backups.quarantineCount, 0)
+        XCTAssertEqual(backups.clearCount, 0)
+        XCTAssertTrue(preferences.appliedOperations.isEmpty)
     }
 
     // MARK: restore
 
     func testRestoringDeletesKeysThatWereOriginallyAbsent() throws {
         _ = try coordinator.apply(.wide)
-        let outcome = try coordinator.restore()
-
-        XCTAssertEqual(outcome, .restored(.unset))
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
         XCTAssertEqual(preferences.currentHost, .unset)
         XCTAssertNil(backups.record)
-    }
-
-    func testRestoringPutsBackAValueTheUserHadSet() throws {
-        preferences.currentHost = .uniform(12)
-        _ = try coordinator.apply(.minimum)
-
-        XCTAssertEqual(try coordinator.restore(), .restored(.uniform(12)))
-        XCTAssertEqual(preferences.currentHost, .uniform(12))
     }
 
     func testRestoringWithoutABackupWritesNothing() throws {
@@ -134,24 +189,17 @@ final class SpacingCoordinatorTests: XCTestCase {
 
     func testAnExternalChangeIsRefusedNotOverwritten() throws {
         _ = try coordinator.apply(.minimum)
-        preferences.currentHost = .uniform(20)  // changed by something else
+        preferences.currentHost = .uniform(20)
 
-        let outcome = try coordinator.restore()
-
-        XCTAssertEqual(outcome, .refusedExternalChange(current: .uniform(20), original: .unset))
+        XCTAssertEqual(try coordinator.restore(),
+                       .refusedExternalChange(current: .uniform(20), original: .unset))
         XCTAssertEqual(preferences.currentHost, .uniform(20))
-        XCTAssertEqual(preferences.appliedOperations.count, 1)  // only the apply
+        XCTAssertEqual(preferences.appliedOperations.count, 1)
         XCTAssertNotNil(backups.record)
     }
 
     func testAnUnreadableBackupNeverProducesARestoreWrite() throws {
         backups.loadError = .unreadable("damaged")
-        XCTAssertEqual(try coordinator.restore(), .unusableBackup)
-        XCTAssertTrue(preferences.appliedOperations.isEmpty)
-    }
-
-    func testACorruptRecordNeverProducesARestoreWrite() throws {
-        backups.record = BackupRecord(original: .uniform(9999), applied: .unset, capturedAt: fixedDate)
         XCTAssertEqual(try coordinator.restore(), .unusableBackup)
         XCTAssertTrue(preferences.appliedOperations.isEmpty)
     }
@@ -163,14 +211,37 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertNil(backups.record)
     }
 
-    func testAnIgnoredRestoreIsReportedAndKeepsTheRecord() throws {
+    // MARK: failures that must not be reported as write failures
+
+    func testACompletedWriteIsNotReportedAsAFailureBecauseCleanupFailed() throws {
         _ = try coordinator.apply(.wide)
-        preferences.readBackOverride = .uniform(24)  // the deletion does not take
+        backups.clearError = .unreadable("cannot delete")
 
-        let outcome = try coordinator.restore()
+        // The Mac does get back to its original state; a stubborn bookkeeping
+        // file must not turn that into a thrown error.
+        XCTAssertEqual(try coordinator.apply(.osDefault), .applied(.unset))
+        XCTAssertEqual(preferences.currentHost, .unset)
+    }
 
-        XCTAssertEqual(outcome, .noEffect(expected: .unset, actual: .uniform(24)))
-        XCTAssertNotNil(backups.record)
+    // MARK: two instances
+
+    /// The race the lock exists for: another instance restores and clears the
+    /// record while this one is mid-apply. Under the lock, this instance sees a
+    /// consistent view and never records a state the app itself produced.
+    func testTheLiveStateIsReadInsideTheLockNotBeforeIt() throws {
+        _ = try coordinator.apply(.minimum)              // Mac 4/4, record original: unset
+        backups.onLock = {
+            // Another instance finishes its restore in this window.
+            self.preferences.currentHost = .unset
+            self.backups.record = nil
+        }
+
+        _ = try coordinator.apply(.wide)
+
+        // `original` must be the state after the other instance's restore, not
+        // the 4/4 this app had produced earlier.
+        XCTAssertEqual(backups.record?.original, .unset)
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
     }
 
     // MARK: state
@@ -183,22 +254,22 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertEqual(state.currentHost, .uniform(24))
         XCTAssertEqual(state.anyHost, .uniform(6))
         XCTAssertEqual(state.preset, .wide)
-        XCTAssertTrue(state.hasBackup)
-        XCTAssertFalse(state.backupUnreadable)
+        XCTAssertEqual(state.backup, .present)
     }
 
     func testStateReportsAValueWeDidNotProduce() {
         preferences.currentHost = .uniform(13)
         let state = coordinator.state()
         XCTAssertNil(state.preset)
-        XCTAssertFalse(state.hasBackup)
+        XCTAssertEqual(state.backup, .absent)
     }
 
-    func testStateReportsAnUnreadableBackupInsteadOfClaimingThereIsNone() {
+    /// The case the throwing `load()` exists for: a UI must never be able to
+    /// read this as "nothing of ours is in effect".
+    func testStateDistinguishesNoBackupFromAnUnreadableOne() {
         backups.loadError = .unreadable("damaged")
-        let state = coordinator.state()
-        XCTAssertFalse(state.hasBackup)
-        XCTAssertTrue(state.backupUnreadable)
+        XCTAssertEqual(coordinator.state().backup, .unreadable)
+        XCTAssertNotEqual(coordinator.state().backup, .absent)
     }
 }
 
@@ -230,9 +301,12 @@ final class FileBackupStoreTests: XCTestCase {
         XCTAssertEqual(try store.load(), record)
     }
 
-    func testSavingCreatesTheContainingDirectory() throws {
-        try store.save(BackupRecord(original: .unset, applied: .uniform(4), capturedAt: Date()))
-        XCTAssertTrue(FileManager.default.fileExists(atPath: store.url.path))
+    func testAnUninterpretableValueSurvivesTheRoundTrip() throws {
+        let opaque = try XCTUnwrap(OpaqueValue(capturing: "8", summary: "text \"8\""))
+        let record = BackupRecord(original: SpacingSettings(spacing: .other(opaque), selectionPadding: .absent),
+                                  applied: .uniform(4), capturedAt: Date(timeIntervalSince1970: 1))
+        try store.save(record)
+        XCTAssertEqual((try store.load())?.original.spacing, .other(opaque))
     }
 
     func testClearingRemovesTheRecordAndIsIdempotent() throws {
@@ -250,6 +324,40 @@ final class FileBackupStoreTests: XCTestCase {
                 return XCTFail("expected .unreadable, got \(error)")
             }
         }
+    }
+
+    func testQuarantineKeepsTheBytesUnderANewName() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try Data("{\"original\": broken".utf8).write(to: store.url)
+
+        try store.quarantine()
+
+        XCTAssertNil(try store.load(), "the damaged file must no longer be the live record")
+        let salvaged = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+            .filter { $0.contains("damaged") }
+        XCTAssertEqual(salvaged.count, 1)
+        let content = try String(contentsOf: directory.appendingPathComponent(salvaged[0]), encoding: .utf8)
+        XCTAssertTrue(content.contains("original"), "the bytes a person could still read must survive")
+    }
+
+    func testExclusiveAccessSerialisesTwoConcurrentHolders() throws {
+        let other = FileBackupStore(url: store.url)
+        let started = expectation(description: "second holder started")
+        var overlapped = false
+        var inside = false
+
+        try store.withExclusiveAccess {
+            let queue = DispatchQueue(label: "second")
+            queue.async {
+                started.fulfill()
+                try? other.withExclusiveAccess { if inside { overlapped = true } }
+            }
+            inside = true
+            wait(for: [started], timeout: 5)
+            Thread.sleep(forTimeInterval: 0.2)   // the window the other holder would use
+            inside = false
+        }
+        XCTAssertFalse(overlapped, "two holders were inside the critical section at once")
     }
 
     func testTheDefaultLocationIsTheAppsOwnApplicationSupportFolder() {

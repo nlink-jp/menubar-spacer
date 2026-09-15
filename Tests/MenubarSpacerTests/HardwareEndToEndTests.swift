@@ -63,11 +63,11 @@ final class HardwareEndToEndTests: XCTestCase {
     /// `CFPreferencesSetMultiple` with only one key named in each list: the shape
     /// the minimal write plan produces, and the one the probe never exercised.
     func testWritingASingleKeyLeavesTheOtherUntouched() throws {
-        _ = try preferences.apply([.set(key: .spacing, value: 8)])
+        _ = try preferences.apply([.set(key: .spacing, value: .integer(8))])
         XCTAssertEqual(preferences.read(.currentHost),
                        SpacingSettings(spacing: .integer(8), selectionPadding: .absent))
 
-        _ = try preferences.apply([.set(key: .selectionPadding, value: 8)])
+        _ = try preferences.apply([.set(key: .selectionPadding, value: .integer(8))])
         XCTAssertEqual(preferences.read(.currentHost), .uniform(8))
 
         _ = try preferences.apply([.delete(key: .spacing)])
@@ -76,6 +76,36 @@ final class HardwareEndToEndTests: XCTestCase {
 
         // And the coordinator's plan fills in just the missing key.
         XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+    }
+
+    /// Values a person can put there with `defaults write` that this app would
+    /// never produce. Before the read layer preserved them, a string read as
+    /// "absent" — so Restore would have deleted a key the user had set.
+    func testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim() throws {
+        let text = try XCTUnwrap(OpaqueValue(capturing: "8", summary: "text \"8\""))
+        _ = try preferences.apply([.set(key: .spacing, value: .other(text))])
+
+        let read = preferences.read(.currentHost).spacing
+        guard case let .other(value) = read else {
+            return XCTFail("a string value must not read as \(read)")
+        }
+        XCTAssertEqual(value.value as? String, "8")
+
+        // And it survives being recorded as the original and put back.
+        XCTAssertEqual(try coordinator.apply(.wide), .applied(.uniform(24)))
+        XCTAssertEqual(try coordinator.restore(),
+                       .restored(SpacingSettings(spacing: .other(value), selectionPadding: .absent)))
+        XCTAssertEqual(preferences.read(.currentHost).spacing.summary, "text \"8\"")
+    }
+
+    func testADecimalIsNotSilentlyTruncated() throws {
+        let decimal = try XCTUnwrap(OpaqueValue(capturing: 12.5, summary: "decimal 12.5"))
+        _ = try preferences.apply([.set(key: .spacing, value: .other(decimal))])
+
+        guard case let .other(value) = preferences.read(.currentHost).spacing else {
+            return XCTFail("a decimal must not read as an integer")
+        }
+        XCTAssertEqual(value.value as? Double, 12.5)
     }
 
     func testAnEmptyPlanWritesNothing() throws {

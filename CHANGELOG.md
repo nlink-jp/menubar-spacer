@@ -1,30 +1,44 @@
 # Changelog
 
+All notable changes to menubar-spacer are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/), and the project adheres to
+Semantic Versioning.
+
 ## [Unreleased]
 
-- Implement the preference writer, the on-disk backup and the apply/restore
-  coordinator: the way back is stored before the first write, every write is
-  verified by reading it back, a restore is refused when someone else changed
-  the keys in between, and an unreadable backup blocks every preset except the
-  return to the OS default. 26 new tests.
-- Add opt-in hardware tests, the only ones that touch the real preference
-  domain: they refuse to run unless both keys are absent and delete both keys
-  in teardown. They cover the single-key write the measurement probe never
-  performed.
+### Added
 
-- Measure the spacing behaviour on macOS 27.0: every preset value is now
-  observed (unset 37, 4 → 25, 8 → 29, 24 → 45), the value proves to be latched
-  per process rather than per status item, and read-back after each write
-  matched. Two identical runs, preferences restored exactly both times.
-- Add the development-only measurement probe and its coordinator, with an exact
-  two-key backup, an external watchdog, serialised mutations and 20 guard cases.
-- Settle the preview design on a child process, since items created in the
-  running app after a write keep the old spacing.
+- The preference layer for the two spacing keys, an on-disk backup of the state
+  this Mac held beforehand, and the apply/restore coordinator that orders the
+  two safely. See [ADR-0001](docs/en/adr/0001-backup-and-restore-model.md).
+- Presets: minimum (4), narrow (8), OS default, wide (24). Every value measured
+  on macOS 27.0; see [the measurements](docs/en/phase1-results.md).
+- A development-only measurement probe and its coordinator, with an exact
+  two-key backup, an external watchdog and serialised mutations.
+- Opt-in hardware tests, the only ones that touch the real preference domain.
 
-- Scaffold the project: Swift Package Manager layout, signing and notarization
-  wiring, bilingual README, and the RFP in both languages.
-- Add the pure model layer — spacing keys, absent-aware stored values, minimal
-  write plans, the four presets, and the restore decision that refuses to
-  overwrite an external change or write from a corrupt backup — with 19 tests.
-- Add a read-only preference reader for the current-host and any-host scopes,
-  and a window shell that describes the live state. Nothing is written yet.
+### Fixed
+
+Findings from the independent review of the write layer, all pre-release:
+
+- A value someone had set by hand outside 0…64 was recorded faithfully and then
+  rejected as corrupt on every restore, leaving no way back. There is no
+  plausibility range any more: whatever a Mac holds is what gets restored.
+- A value that is not a plain integer — what `defaults write -g … 8` stores
+  without `-int` — read as "absent", so a restore would have deleted a key the
+  user had set. Such values are now preserved verbatim and written back unchanged.
+- A write that landed on one key only left the record describing the requested
+  state rather than the Mac, so the next restore blamed an outsider and refused.
+  The record is now re-saved from what was actually read back.
+- Two running copies could race between reading the record and saving it, and
+  the second could record a state the app itself produced as the user's
+  original. Every mutating path now runs under an exclusive lock and reads the
+  live state inside it.
+- An unreadable backup was deleted even when nothing had been written. It is now
+  moved aside rather than deleted, and only after a write actually happened.
+- Applying over a change made outside the app is now reported
+  (`appliedOverExternalChange`) instead of passing silently.
+- A failure to delete the bookkeeping file no longer reports a completed write
+  as a failure.
+- The project scaffold: Swift Package Manager layout, signing and notarization
+  wiring, bilingual README and RFP.

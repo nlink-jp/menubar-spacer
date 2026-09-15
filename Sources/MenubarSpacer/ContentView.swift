@@ -1,16 +1,16 @@
 import SwiftUI
 
 /// Scaffold UI: it reads and describes the live state, and lists the presets.
-/// Applying, previewing and restoring are Phase 1/2 work — until the preference
-/// writer and its hardware checks exist, this window must not offer a button
-/// that claims to change anything.
+/// Applying, previewing and restoring are Phase 2 work — the coordinator exists
+/// and is tested, but nothing here calls it yet, so this window must not offer a
+/// control that claims to change anything.
 struct ContentView: View {
-    private let preferences: SpacingPreferenceReading
-    @State private var currentHost: SpacingSettings = .unset
-    @State private var anyHost: SpacingSettings = .unset
+    private let coordinator: SpacingCoordinator
+    @State private var state: SpacingState?
 
-    init(preferences: SpacingPreferenceReading = SystemSpacingPreferences()) {
-        self.preferences = preferences
+    init(coordinator: SpacingCoordinator = SpacingCoordinator(preferences: SystemSpacingPreferences(),
+                                                              backups: FileBackupStore())) {
+        self.coordinator = coordinator
     }
 
     var body: some View {
@@ -18,10 +18,11 @@ struct ContentView: View {
             Text("Menu bar spacing")
                 .font(.title2.weight(.semibold))
 
-            GroupBox("Current state") {
+            GroupBox("Current spacing") {
                 VStack(alignment: .leading, spacing: 6) {
-                    LabeledContent("This Mac", value: describe(currentHost))
-                    LabeledContent("All Macs", value: describe(anyHost))
+                    LabeledContent("This Mac", value: SpacingDescription.spacing(state?.currentHost))
+                    LabeledContent("All Macs", value: SpacingDescription.spacing(state?.anyHost))
+                    LabeledContent("Can be undone", value: SpacingDescription.backup(state?.backup))
                 }
                 .padding(4)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -30,9 +31,8 @@ struct ContentView: View {
             GroupBox("Presets") {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(SpacingPreset.allCases) { preset in
-                        LabeledContent(preset.rawValue) {
-                            Text(preset.value.map(String.init) ?? "unset")
-                                .monospacedDigit()
+                        LabeledContent(preset.title) {
+                            Text(preset.value.map(String.init) ?? "—").monospacedDigit()
                         }
                     }
                 }
@@ -40,31 +40,38 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            Text("Scaffold build \(AppInfo.version): applying, preview and restore are not implemented yet.")
+            Text("Version \(AppInfo.version)")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+                .textSelection(.enabled)
         }
         .padding(20)
         .frame(width: 380)
-        .onAppear(perform: reload)
+        .onAppear { state = coordinator.state() }
+    }
+}
+
+/// What the person in front of the screen is told. Deliberately free of the
+/// app's own vocabulary: no key names, no "absent", no build status.
+enum SpacingDescription {
+    static func spacing(_ settings: SpacingSettings?) -> String {
+        guard let settings else { return "—" }
+        if settings == .unset { return "macOS default" }
+        if let value = settings.uniformValue { return String(value) }
+        return "set outside this app"
     }
 
-    private func reload() {
-        currentHost = preferences.read(.currentHost)
-        anyHost = preferences.read(.anyHost)
-    }
-
-    private func describe(_ settings: SpacingSettings) -> String {
-        if settings == .unset { return "OS default (both keys unset)" }
-        if let value = settings.uniformValue { return "\(value)" }
-        return "mixed (\(text(settings.spacing)) / \(text(settings.selectionPadding)))"
-    }
-
-    private func text(_ value: StoredValue) -> String {
-        value.integerValue.map(String.init) ?? "unset"
+    static func backup(_ status: BackupStatus?) -> String {
+        guard let status else { return "—" }
+        switch status {
+        case .absent: return "nothing to undo"
+        case .present: return "yes"
+        case .unreadable: return "the saved original cannot be read"
+        }
     }
 }
 
 #Preview {
-    ContentView(preferences: StubSpacingPreferences(currentHost: .uniform(8)))
+    ContentView(coordinator: SpacingCoordinator(preferences: StubSpacingPreferences(currentHost: .uniform(8)),
+                                                backups: StubBackupStore()))
 }

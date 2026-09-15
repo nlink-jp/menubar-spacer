@@ -7,14 +7,9 @@ Mac, where they collide with the application menus — the only lever is a pair 
 undocumented global preferences. menubar-spacer changes those two, records what
 they held beforehand, and restores that state on demand.
 
-> **Status: in development.** The preference reader, the preset model and their
-> tests are in place, and the spacing behaviour is measured on hardware;
-> applying, preview and restore are not implemented yet. There is no release to
-> install.
-
 ## Requirements
 
-- macOS 27 or later, Apple Silicon.
+- macOS 27 or later, Apple Silicon. Signed with Developer ID and notarized.
 - No permissions. The app needs no Accessibility, Screen Recording or Full Disk
   Access grant, no administrator rights, and no network access.
 
@@ -75,9 +70,7 @@ make build-app   # signed .app in dist/
 
 ## How it was measured
 
-Every number above comes from a bounded experiment that backs up both keys before
-writing, restores them afterwards, and verifies the restoration — twice, with
-identical results. See [the results](docs/en/phase1-results.md).
+See [the measurements](docs/en/phase1-results.md).
 
 ## License
 

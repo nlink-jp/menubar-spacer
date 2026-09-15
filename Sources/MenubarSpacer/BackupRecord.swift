@@ -1,15 +1,20 @@
 import Foundation
 
-/// What the two keys held before this app first changed them, plus what it wrote.
-/// One record, not a history: the only state worth keeping is the way back.
+/// What the two keys held before this app first changed them, plus what the Mac
+/// was last observed to hold after one of our writes. One record, not a history:
+/// the only state worth keeping is the way back.
+///
+/// Both fields are captured from what was actually read, never from what was
+/// intended. `original` in particular may hold values this app would never
+/// produce — a hand-set 100, or a string — and those are exactly the values a
+/// restore has to put back.
 struct BackupRecord: Equatable, Codable, Sendable {
-    /// The state captured immediately before the first apply.
+    /// The state read immediately before the first apply.
     var original: SpacingSettings
-    /// The state this app last wrote, used to detect changes made elsewhere.
+    /// The state read back after the most recent write. Not the target: a write
+    /// that only half landed must leave the record describing the Mac as it is.
     var applied: SpacingSettings
     var capturedAt: Date
-
-    var isPlausible: Bool { original.isPlausible && applied.isPlausible }
 }
 
 /// What "Restore" should do, decided from the record and the live state before
@@ -19,23 +24,40 @@ enum RestoreDecision: Equatable, Sendable {
     case noBackup
     /// The live state already equals the original; there is nothing to undo.
     case alreadyOriginal
-    /// The live state is what this app last wrote — safe to put the original back.
+    /// The live state is explicable by our own write — safe to put the original back.
     case restore([WriteOperation])
-    /// Someone else changed the keys after our apply. Restoring would silently
+    /// Someone else changed the keys after our write. Restoring would silently
     /// discard their change, so the UI must ask instead of deciding.
     case changedExternally(current: SpacingSettings, original: SpacingSettings)
-    /// The backup file is unusable (corrupt values). Never write from it.
-    case unusableBackup
+    /// The recorded original holds something that cannot be written back.
+    case unrestorableOriginal(SpacingSettings)
 }
 
 enum RestorePlanner {
     static func decide(record: BackupRecord?, current: SpacingSettings) -> RestoreDecision {
         guard let record else { return .noBackup }
-        guard record.isPlausible else { return .unusableBackup }
         if current == record.original { return .alreadyOriginal }
-        guard current == record.applied else {
+        guard record.original.isRestorable else {
+            return .unrestorableOriginal(record.original)
+        }
+        guard isExplainedByOurWrite(current: current, record: record) else {
             return .changedExternally(current: current, original: record.original)
         }
         return .restore(SpacingPlan.operations(from: current, to: record.original))
+    }
+
+    /// True when every key holds either what it held before our write or what we
+    /// last observed after it. That covers the exact state we left behind, and
+    /// also a write that landed on one key only — whether because the OS ignored
+    /// half of it or because the app died between the two. Attributing such a
+    /// state to an outsider would make the app refuse to clean up its own mess.
+    ///
+    /// A third party that happens to set a key to precisely the value we wrote is
+    /// indistinguishable from us, and is treated as us. Restoring is the right
+    /// move either way.
+    static func isExplainedByOurWrite(current: SpacingSettings, record: BackupRecord) -> Bool {
+        SpacingKey.allCases.allSatisfy { key in
+            current[key] == record.original[key] || current[key] == record.applied[key]
+        }
     }
 }
