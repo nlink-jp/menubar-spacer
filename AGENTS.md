@@ -134,6 +134,11 @@ the guard is the org's standard for every Swift GUI app here
 
 - A change reaches an app only when that app next launches. The app must say so
   and must never quit other applications.
+- **macOS's own icons never follow the setting**, and applying it everywhere
+  takes a sign out and back in — both found by using the app, not by measuring
+  our fixture, and both stated in the window itself
+  (`OutcomeMessage.scopeNote`). A person who does not know these reads the app
+  as broken.
 - **Nothing can show a spacing before it is written**, and a process cannot show
   one it wrote itself — both measured, not assumed. A menu bar preview built on a
   child process was withdrawn: it only worked after a write, and one strip seen

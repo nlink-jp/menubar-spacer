@@ -9,6 +9,17 @@ import Foundation
 enum OutcomeMessage {
     static let relaunchNote = "Quit and reopen an app to see its menu bar icons move."
 
+    /// What this setting does **not** reach, stated where the choice is made
+    /// rather than inside a message that scrolls away. Both facts were found by
+    /// using the app on real hardware, not from the documentation that does not
+    /// exist for these keys: after a full sign out and back in, third-party
+    /// icons had taken the new spacing while macOS's own had not.
+    static let scopeNote = """
+        Each app takes the new spacing when it next launches; sign out and back \
+        in to apply it everywhere at once. macOS's own icons — Wi-Fi, battery, \
+        the clock, Control Center — keep their spacing either way.
+        """
+
     static func apply(_ outcome: ApplyOutcome) -> String {
         switch outcome {
         case let .applied(settings):

@@ -52,6 +52,25 @@ python3 spikes/capture_spacing.py run /absolute/output-directory
 Raw captures and the per-stage record are in
 [evidence/screenshots](../../evidence/screenshots).
 
+## What it does not reach
+
+Using the app on a real Mac turned up two limits that no measurement of our own
+fixture could have shown:
+
+- **macOS's own icons keep their spacing.** Wi-Fi, battery, the clock, Control
+  Center and the input menu did not move, before or after a sign out.
+- **A sign out and back in is what applies it everywhere.** Quitting and
+  reopening one app moves that app's icon; most of the rest belong to helpers
+  that cannot be quit individually.
+
+Corroborating measurement, taken in one frame with the spacing set to 8 and
+every process restarted by a sign in: our own six fresh icons sat at a 29–30 px
+pitch, third-party icons at 26–33 px (mean ≈ 29), and the cluster of macOS's own
+icons at 34–38 px (mean ≈ 36) — the pitch the default produces. That is
+consistent with the observation rather than proof of it: glyph widths differ
+between icons, and only a before-and-after across a sign out settles it. The
+before-and-after is the operator's own observation above.
+
 ## Limits
 
 - Six icons of our own making, not a real menu bar's mixture of widths.

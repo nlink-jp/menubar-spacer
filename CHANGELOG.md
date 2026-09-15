@@ -8,6 +8,10 @@ Semantic Versioning.
 
 ### Added
 
+- The window states what the setting does not reach: macOS's own icons keep
+  their spacing, and applying it everywhere takes a sign out and back in. Both
+  were found by using the app on hardware.
+
 - Photographs of every preset, with the measured widths, and a comparison image
   stacking them on one canvas: six icons occupy 186px at Minimum against 258px
   at the macOS default. See docs/en/preset-appearance.md.

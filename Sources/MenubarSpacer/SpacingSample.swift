@@ -135,6 +135,7 @@ struct SpacingSampleView: View {
             Text("Six sample icons, drawn to the widths measured on this version of macOS.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

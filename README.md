@@ -38,13 +38,16 @@ icons side by side occupy 186px at Minimum against 258px at the default — see
 
 ## Limits
 
+- **macOS's own icons do not follow it.** Wi-Fi, battery, the clock, Control
+  Center and the input menu keep their spacing whatever this is set to, and a
+  sign out does not change that. Only other applications' icons move.
 - **A change reaches an app only when that app next launches.** The spacing is
   fixed when an app starts, so a running app keeps its old spacing until you quit
-  and reopen it, or log out and back in. menubar-spacer never quits other
-  applications for you.
+  and reopen it. **Sign out and back in to apply it everywhere at once** — many
+  menu bar icons belong to helpers you cannot quit individually. menubar-spacer
+  never quits anything for you.
 - **Not every app is known to follow the setting.** It was measured with an
-  AppKit test app. Apple's own menu bar items, multiple displays and overflow
-  layouts have not been checked.
+  AppKit test app; multiple displays and overflow layouts have not been checked.
 - **These preferences are undocumented.** Apple does not support them, and a
   macOS update may change or ignore them. The app reads the values back after
   writing and tells you when they did not take effect.

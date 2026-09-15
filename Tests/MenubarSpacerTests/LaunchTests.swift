@@ -34,7 +34,18 @@ final class OutcomeMessageTests: XCTestCase {
             OutcomeMessage.failure(SpacingWriteError.synchronizationFailed(actual: .unset)),
             OutcomeMessage.failure(SpacingWriteError.unrestorableValue(.spacing)),
             OutcomeMessage.failure(CocoaError(.fileWriteNoPermission)),
+            OutcomeMessage.scopeNote,
         ]
+    }
+
+    /// Both limits were found by using the app, and both are things a person
+    /// would otherwise discover as "it didn't work". They belong in the window,
+    /// not only in the README.
+    func testTheScopeNoteNamesWhatTheSettingDoesNotReach() {
+        let note = OutcomeMessage.scopeNote
+        XCTAssertTrue(note.contains("sign out"), note)
+        XCTAssertTrue(note.contains("macOS's own icons"), note)
+        XCTAssertTrue(note.contains("next launches"), note)
     }
 
     func testEveryOutcomeSaysSomething() {

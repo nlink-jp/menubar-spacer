@@ -22,6 +22,11 @@ struct ContentView: View {
                     .disabled(!model.canUndo)
             }
 
+            Text(OutcomeMessage.scopeNote)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
             if let message = model.message {
                 Text(message)
                     .font(.callout)
