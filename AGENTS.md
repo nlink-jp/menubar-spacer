@@ -4,16 +4,21 @@ A non-resident macOS app that changes menu bar icon spacing through two
 undocumented global preferences and restores the prior state exactly.
 Swift / SwiftUI + AppKit, Swift Package Manager, macOS 27+, Apple Silicon.
 
-**Scaffold stage, Phase 1 measurements done.** The preference reader, the preset
-and plan model, the restore decision logic and their tests exist, and the three
-hardware questions are answered (`docs/en/phase1-results.md`). Applying, preview
-and restore are still unimplemented: the app writes nothing yet.
+**Phase 1 complete.** The three hardware questions are answered
+(`docs/en/phase1-results.md`), and the preference layer, the backup layer and the
+apply/restore coordinator are implemented and tested — including against the real
+preference domain. Phase 2 is the UI: nothing in the shipped app calls the
+coordinator yet, so launching the app still writes nothing.
 
 ## Build and test
 
 ```sh
-make test        # swift test (18 cases)
+make test        # swift test (44 cases; the hardware tests skip)
 python3 spikes/test_phase1.py   # 20 measurement-coordinator guards
+
+# The only tests that touch the real preference domain. They refuse to run
+# unless both keys are absent, and delete both keys in teardown.
+MENUBAR_SPACER_HARDWARE_TEST=1 swift test --filter HardwareEndToEndTests
 make run         # swift run (debug)
 make build-app   # signed .app into dist/
 make package     # notarized + stapled + zipped
@@ -33,10 +38,16 @@ the output location and the signing.
 - `Sources/MenubarSpacer/BackupRecord.swift` — the one backup record and
   `RestorePlanner.decide`, which refuses to write over an external change or from
   a corrupt record. Pure.
-- `Sources/MenubarSpacer/SpacingPreferences.swift` — `SpacingPreferenceReading`
-  protocol, the CFPreferences-backed reader, and a stub for tests.
+- `Sources/MenubarSpacer/SpacingPreferences.swift` — the reading and writing
+  protocols, the CFPreferences-backed implementation (every write verified by a
+  read-back), and an in-memory stub for previews and tests.
+- `Sources/MenubarSpacer/BackupStore.swift` — the one backup record on disk,
+  written atomically; an unreadable file throws instead of reading as "no backup".
+- `Sources/MenubarSpacer/SpacingCoordinator.swift` — apply, restore and the
+  state the UI displays. Owns the ordering rules below.
 - `Sources/MenubarSpacer/{App,ContentView}.swift` — the window shell.
-- `Tests/MenubarSpacerTests/` — plan, preset and restore-decision cases.
+- `Tests/MenubarSpacerTests/` — plan, preset, restore-decision, coordinator and
+  file-store cases, plus the opt-in hardware tests.
 - `Sources/SpacingProbe/` — development-only measurement probe. Never copied into
   the `.app`; owns its own preference access so a measurement meant to inform the
   product does not depend on the product's assumptions.
@@ -54,7 +65,14 @@ the output location and the signing.
   deleting both keys, never writing the number that looks like the OS default.
 - **The two keys always move together.** Only that combination was measured.
 - **Tests are mandatory** — the model layer is pure precisely so it can be tested
-  without touching the preference domain.
+  without touching the preference domain. Only `HardwareEndToEndTests` may touch
+  it, and only behind its environment variable.
+- **The backup is durable before the first write, never after it.** If a write
+  fails, the way back must already be on disk.
+- **An unreadable backup blocks every value preset**, because overwriting it
+  would destroy the only record of what this Mac held beforehand. Returning to
+  the OS default stays available: it needs no record and cannot make recovery
+  worse.
 - **Requesting no TCC permission is a requirement, not an accident.** Do not add
   Accessibility or any other grant without a deliberate scope decision.
 - Docs in sync: `README.md` and `README.ja.md` in the same commit.
@@ -83,6 +101,13 @@ Full numbers in `docs/en/phase1-results.md`; evidence in
   the same executable in a preview mode and let it exit; do not relaunch the app.
 - `SpacingPreset.matching` returns nil for a state we did not produce (a
   hand-edited `defaults` write). The UI has to describe that state, not assume it.
+- **"There is a backup" means "something of ours is in effect".** The coordinator
+  drops the record once the Mac is back at its original state, so the UI can read
+  that flag directly.
+- **A restore is refused when someone else changed the keys after our write**
+  (`refusedExternalChange`), rather than silently discarding their change.
+- **A write that does not take is `noEffect`, not success.** These keys are
+  undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global
   preference domain. Direct distribution with Developer ID + notarization only.
 - The cask floor must be set for macOS 27 before the first `make brew`; the

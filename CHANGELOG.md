@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+- Implement the preference writer, the on-disk backup and the apply/restore
+  coordinator: the way back is stored before the first write, every write is
+  verified by reading it back, a restore is refused when someone else changed
+  the keys in between, and an unreadable backup blocks every preset except the
+  return to the OS default. 26 new tests.
+- Add opt-in hardware tests, the only ones that touch the real preference
+  domain: they refuse to run unless both keys are absent and delete both keys
+  in teardown. They cover the single-key write the measurement probe never
+  performed.
+
 - Measure the spacing behaviour on macOS 27.0: every preset value is now
   observed (unset 37, 4 → 25, 8 → 29, 24 → 45), the value proves to be latched
   per process rather than per status item, and read-back after each write
