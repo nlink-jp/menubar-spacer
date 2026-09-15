@@ -33,7 +33,6 @@ struct ContentView: View {
                         LabeledContent(preset.rawValue) {
                             Text(preset.value.map(String.init) ?? "unset")
                                 .monospacedDigit()
-                                .foregroundStyle(preset.isMeasured ? .primary : .secondary)
                         }
                     }
                 }

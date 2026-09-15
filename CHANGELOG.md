@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+- Measure the spacing behaviour on macOS 27.0: every preset value is now
+  observed (unset 37, 4 → 25, 8 → 29, 24 → 45), the value proves to be latched
+  per process rather than per status item, and read-back after each write
+  matched. Two identical runs, preferences restored exactly both times.
+- Add the development-only measurement probe and its coordinator, with an exact
+  two-key backup, an external watchdog, serialised mutations and 20 guard cases.
+- Settle the preview design on a child process, since items created in the
+  running app after a write keep the old spacing.
+
 - Scaffold the project: Swift Package Manager layout, signing and notarization
   wiring, bilingual README, and the RFP in both languages.
 - Add the pure model layer — spacing keys, absent-aware stored values, minimal

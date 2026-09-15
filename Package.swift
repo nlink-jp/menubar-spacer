@@ -14,6 +14,12 @@ let package = Package(
             name: "MenubarSpacer",
             path: "Sources/MenubarSpacer"
         ),
+        // Development-only measurement target for the Phase 1 hardware checks.
+        // It is not copied into the .app bundle by `make build-app`.
+        .executableTarget(
+            name: "SpacingProbe",
+            path: "Sources/SpacingProbe"
+        ),
         .testTarget(
             name: "MenubarSpacerTests",
             dependencies: ["MenubarSpacer"],

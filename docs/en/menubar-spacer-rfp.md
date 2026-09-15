@@ -1,7 +1,7 @@
 # RFP: menubar-spacer
 
 > Generated: 2026-09-15
-> Status: Draft
+> Status: Draft (Phase 1 hardware checks complete — [results](phase1-results.md))
 
 ## 1. Problem Statement
 
@@ -27,7 +27,7 @@ apply → quit.
 |---|---|
 | Current state | Current value of both keys ("OS default" when absent), and whether menubar-spacer set it |
 | Preset picker | Minimum (4) / Narrow (8) / OS default / Wide (24) |
-| Preview | Temporarily shows two or three of the app's own status items so the real spacing is visible |
+| Preview | Spawns a short-lived child process showing the app's own status items, so the real spacing is visible |
 | Apply | Writes the preset, then reads the effective values back to verify the result |
 | Restore | Returns to the recorded prior state, including absence |
 | Guidance | States that a target app must be relaunched — or the user logged out — before the change shows |
@@ -96,14 +96,11 @@ distribution surface with no benefit to the user.
    Read-only access to the any-host scope for display.
 2. Backup layer: record and restore the prior state. Atomic writes. Detection of
    changes made outside the app.
-3. Hardware checks (macOS 27.0, Apple Silicon):
-   - The effect of presets 4, 8 and 24. Only 4 and 24 were measured; 8 is an
-     interpolation from the linear hypothesis `width ≈ intrinsic + N` and must be
-     confirmed.
-   - Whether a status item created in the same process picks up the new values —
-     the precondition for the preview feature. The study only ever observed a
-     freshly launched process.
-   - That reading the effective values back after a write behaves as expected.
+3. Hardware checks (macOS 27.0, Apple Silicon) — **done, see [results](phase1-results.md)**:
+   - Presets 4, 8 and 24 are all measured now (widths 25 / 29 / 45; unset is 37).
+   - **The value is latched per process.** Items created in the same process after
+     a write do not pick it up; a child process spawned by that process does.
+   - Read-back after every write matched what was written.
 4. Unit tests: state transitions (absent → value → absent), backup round trips,
    external-change detection, rejection of out-of-range and malformed values.
 
@@ -113,9 +110,9 @@ review is mandatory.
 ### Phase 2: Features
 
 5. The SwiftUI window, preset picker, and current-state display.
-6. Preview through the app's own status items (depends on the result of step 3;
-   if the same process does not pick up the change, switch to relaunching the app
-   itself for the preview).
+6. Preview through a child process: apply, spawn the same executable in a preview
+   mode to show its own status items, and let it exit. Settled by measurement;
+   relaunching the app itself is not needed.
 7. Relaunch guidance, a path back to OS defaults before uninstalling, app icon.
 
 **Independently reviewable.**
@@ -157,9 +154,10 @@ intelligence and IR — none of which fit.
    supports nothing here; an OS update may change or disable the behavior. The
    app reads the effective values back after applying and reports "no effect"
    when they do not match.
-2. **Only newly launched processes are affected.** Status items of already
-   running apps do not change. Restarting Finder or logging out was never shown
-   to be necessary, but a fresh launch was shown to be sufficient.
+2. **Only newly launched processes are affected.** The value is latched per
+   process, so a running app's status items do not change even if that app
+   recreates them. Restarting Finder or logging out was never shown to be
+   necessary, but a fresh launch was shown to be sufficient.
 3. **The two keys were only ever validated changed together.** Individual effects
    are unknown, so the product changes them together as well.
 4. **Compatibility with all apps is unverified.** Only our own AppKit fixture was
@@ -195,7 +193,8 @@ intelligence and IR — none of which fit.
 - "Guidance only" was chosen for the relaunch problem, because quitting other
   apps on the user's behalf can destroy unsaved work.
 - The preview uses the app's own real status items. Whether a new item in the
-  same process picks up the new value is unverified and is a Phase 1 check.
+  same process picks up the new value was measured in Phase 1: it does **not**,
+  so the preview spawns a child process, which matches a fresh process exactly.
 - Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
   available to test on, but the chosen policy is to promise only what has been
   measured rather than widen the verification surface.

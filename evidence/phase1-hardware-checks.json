@@ -1,0 +1,2635 @@
+{
+  "test": "menubar-spacer Phase 1 hardware checks",
+  "original": {
+    "any_host": {},
+    "current_host": {}
+  },
+  "stages": {
+    "baseline": {
+      "requested_value": null,
+      "preferences": {
+        "any_host": {},
+        "current_host": {}
+      },
+      "probe": {
+        "effective_at_launch": {
+          "cfpreferences": {},
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": null,
+            "NSStatusItemSpacing": null
+          }
+        },
+        "effective_at_sample": {
+          "cfpreferences": {},
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": null,
+            "NSStatusItemSpacing": null
+          }
+        },
+        "mode": "sample",
+        "os": "Version 27.0 (Build 26A428)",
+        "samples": [
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1571,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1533,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1485,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 0.6232789754867554
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1571,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1533,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1485,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 1.6729789972305298
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1571,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1533,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1485,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 3.247446060180664
+          }
+        ]
+      }
+    },
+    "value_4": {
+      "requested_value": 4,
+      "preferences": {
+        "any_host": {},
+        "current_host": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        }
+      },
+      "probe": {
+        "effective_at_launch": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 4,
+            "NSStatusItemSpacing": 4
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 4,
+            "NSStatusItemSpacing": 4
+          }
+        },
+        "effective_at_sample": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 4,
+            "NSStatusItemSpacing": 4
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 4,
+            "NSStatusItemSpacing": 4
+          }
+        },
+        "mode": "sample",
+        "os": "Version 27.0 (Build 26A428)",
+        "samples": [
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1583,
+                  2130,
+                  25,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1557,
+                  2130,
+                  26,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1521,
+                  2130,
+                  36,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 0.6331499814987183
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1583,
+                  2130,
+                  25,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1557,
+                  2130,
+                  26,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1521,
+                  2130,
+                  36,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 1.6832690238952637
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  25,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1583,
+                  2130,
+                  25,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1557,
+                  2130,
+                  26,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1521,
+                  2130,
+                  36,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 3.2583600282669067
+          }
+        ]
+      }
+    },
+    "value_8": {
+      "requested_value": 8,
+      "preferences": {
+        "any_host": {},
+        "current_host": {
+          "NSStatusItemSelectionPadding": 8,
+          "NSStatusItemSpacing": 8
+        }
+      },
+      "probe": {
+        "effective_at_launch": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 8,
+            "NSStatusItemSpacing": 8
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 8,
+            "NSStatusItemSpacing": 8
+          }
+        },
+        "effective_at_sample": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 8,
+            "NSStatusItemSpacing": 8
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 8,
+            "NSStatusItemSpacing": 8
+          }
+        },
+        "mode": "sample",
+        "os": "Version 27.0 (Build 26A428)",
+        "samples": [
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1579,
+                  2130,
+                  29,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1549,
+                  2130,
+                  30,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1509,
+                  2130,
+                  40,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 0.6331559419631958
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1579,
+                  2130,
+                  29,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1549,
+                  2130,
+                  30,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1509,
+                  2130,
+                  40,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 1.6827529668807983
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  29,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1578,
+                  2130,
+                  29,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1548,
+                  2130,
+                  30,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1508,
+                  2130,
+                  40,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 3.2620389461517334
+          }
+        ]
+      }
+    },
+    "value_24": {
+      "requested_value": 24,
+      "preferences": {
+        "any_host": {},
+        "current_host": {
+          "NSStatusItemSelectionPadding": 24,
+          "NSStatusItemSpacing": 24
+        }
+      },
+      "probe": {
+        "effective_at_launch": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 24,
+            "NSStatusItemSpacing": 24
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 24,
+            "NSStatusItemSpacing": 24
+          }
+        },
+        "effective_at_sample": {
+          "cfpreferences": {
+            "NSStatusItemSelectionPadding": 24,
+            "NSStatusItemSpacing": 24
+          },
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": 24,
+            "NSStatusItemSpacing": 24
+          }
+        },
+        "mode": "sample",
+        "os": "Version 27.0 (Build 26A428)",
+        "samples": [
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1562,
+                  2130,
+                  45,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1516,
+                  2130,
+                  46,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1460,
+                  2130,
+                  56,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 0.6430050134658813
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1562,
+                  2130,
+                  45,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1516,
+                  2130,
+                  46,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1460,
+                  2130,
+                  56,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 1.693058967590332
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  45,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1562,
+                  2130,
+                  45,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1516,
+                  2130,
+                  46,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1460,
+                  2130,
+                  56,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 3.2676069736480713
+          }
+        ]
+      }
+    },
+    "restored": {
+      "requested_value": null,
+      "preferences": {
+        "any_host": {},
+        "current_host": {}
+      },
+      "probe": {
+        "effective_at_launch": {
+          "cfpreferences": {},
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": null,
+            "NSStatusItemSpacing": null
+          }
+        },
+        "effective_at_sample": {
+          "cfpreferences": {},
+          "user_defaults": {
+            "NSStatusItemSelectionPadding": null,
+            "NSStatusItemSpacing": null
+          }
+        },
+        "mode": "sample",
+        "os": "Version 27.0 (Build 26A428)",
+        "samples": [
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1570,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1532,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1484,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 0.6443289518356323
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1570,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1532,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1484,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 1.6931169033050537
+          },
+          {
+            "before_group": [
+              {
+                "bounds": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  37,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "variable_text",
+                "length": -1,
+                "window_frame": [
+                  1570,
+                  2130,
+                  37,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  22,
+                  29
+                ],
+                "frame": [
+                  0,
+                  -3,
+                  22,
+                  29
+                ],
+                "has_window": true,
+                "intrinsic_width": 16,
+                "kind": "square_symbol",
+                "length": -2,
+                "window_frame": [
+                  1532,
+                  2130,
+                  38,
+                  30
+                ]
+              },
+              {
+                "bounds": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "frame": [
+                  0,
+                  0,
+                  32,
+                  22
+                ],
+                "has_window": true,
+                "intrinsic_width": 21,
+                "kind": "fixed_32",
+                "length": 32,
+                "window_frame": [
+                  1484,
+                  2130,
+                  48,
+                  30
+                ]
+              }
+            ],
+            "phase": "sample",
+            "seconds_after_launch": 3.2648009061813354
+          }
+        ]
+      }
+    }
+  },
+  "same_process": {
+    "stage_name": "value_4",
+    "probe": {
+      "child_launched": true,
+      "effective_after_write": {
+        "cfpreferences": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        },
+        "user_defaults": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        }
+      },
+      "effective_at_launch": {
+        "cfpreferences": {},
+        "user_defaults": {
+          "NSStatusItemSelectionPadding": null,
+          "NSStatusItemSpacing": null
+        }
+      },
+      "effective_at_sample": {
+        "cfpreferences": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        },
+        "user_defaults": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        }
+      },
+      "mode": "same-process",
+      "os": "Version 27.0 (Build 26A428)",
+      "requested_value": 4,
+      "samples": [
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "before_write",
+          "seconds_after_launch": 0.6440171003341675
+        },
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "before_write",
+          "seconds_after_launch": 1.6944741010665894
+        },
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "existing_items_after_write",
+          "seconds_after_launch": 2.7436230182647705
+        },
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "existing_items_after_write",
+          "seconds_after_launch": 4.318279027938843
+        },
+        {
+          "after_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1447,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1409,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1361,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "new_items_after_write",
+          "seconds_after_launch": 5.36837100982666
+        },
+        {
+          "after_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1447,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1409,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1361,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "new_items_after_write",
+          "seconds_after_launch": 6.418420076370239
+        },
+        {
+          "after_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1447,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1409,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1361,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                37,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1570,
+                2130,
+                37,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1532,
+                2130,
+                38,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1484,
+                2130,
+                48,
+                30
+              ]
+            }
+          ],
+          "phase": "new_items_after_write",
+          "seconds_after_launch": 11.144275069236755
+        }
+      ],
+      "write_status": 0
+    },
+    "child_probe": {
+      "effective_at_launch": {
+        "cfpreferences": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        },
+        "user_defaults": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        }
+      },
+      "effective_at_sample": {
+        "cfpreferences": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        },
+        "user_defaults": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        }
+      },
+      "mode": "sample",
+      "os": "Version 27.0 (Build 26A428)",
+      "samples": [
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1336,
+                2130,
+                25,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1310,
+                2130,
+                26,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1274,
+                2130,
+                36,
+                30
+              ]
+            }
+          ],
+          "phase": "sample",
+          "seconds_after_launch": 0.6518049240112305
+        },
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1336,
+                2130,
+                25,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1310,
+                2130,
+                26,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1274,
+                2130,
+                36,
+                30
+              ]
+            }
+          ],
+          "phase": "sample",
+          "seconds_after_launch": 1.7024319171905518
+        },
+        {
+          "before_group": [
+            {
+              "bounds": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                25,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "variable_text",
+              "length": -1,
+              "window_frame": [
+                1336,
+                2130,
+                25,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                22,
+                29
+              ],
+              "frame": [
+                0,
+                -3,
+                22,
+                29
+              ],
+              "has_window": true,
+              "intrinsic_width": 16,
+              "kind": "square_symbol",
+              "length": -2,
+              "window_frame": [
+                1310,
+                2130,
+                26,
+                30
+              ]
+            },
+            {
+              "bounds": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "frame": [
+                0,
+                0,
+                32,
+                22
+              ],
+              "has_window": true,
+              "intrinsic_width": 21,
+              "kind": "fixed_32",
+              "length": 32,
+              "window_frame": [
+                1274,
+                2130,
+                36,
+                30
+              ]
+            }
+          ],
+          "phase": "sample",
+          "seconds_after_launch": 3.2777109146118164
+        }
+      ]
+    },
+    "preferences_after": {
+      "any_host": {},
+      "current_host": {
+        "NSStatusItemSelectionPadding": 4,
+        "NSStatusItemSpacing": 4
+      }
+    }
+  },
+  "restored_preferences": {
+    "any_host": {},
+    "current_host": {}
+  },
+  "result": {
+    "geometry_by_stage": {
+      "baseline": {
+        "variable_text": {
+          "button_width": 37,
+          "window_width": 37,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 38,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 48,
+          "intrinsic_width": 21
+        }
+      },
+      "value_4": {
+        "variable_text": {
+          "button_width": 25,
+          "window_width": 25,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 26,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 36,
+          "intrinsic_width": 21
+        }
+      },
+      "value_8": {
+        "variable_text": {
+          "button_width": 29,
+          "window_width": 29,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 30,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 40,
+          "intrinsic_width": 21
+        }
+      },
+      "value_24": {
+        "variable_text": {
+          "button_width": 45,
+          "window_width": 45,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 46,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 56,
+          "intrinsic_width": 21
+        }
+      },
+      "restored": {
+        "variable_text": {
+          "button_width": 37,
+          "window_width": 37,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 38,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 48,
+          "intrinsic_width": 21
+        }
+      }
+    },
+    "window_width_variable_text": {
+      "baseline": 37,
+      "value_4": 25,
+      "value_8": 29,
+      "value_24": 45,
+      "restored": 37
+    },
+    "all_stages_distinct": true,
+    "baseline_geometry_restored": true,
+    "write_read_back_ok": true,
+    "effective_values_loaded": {
+      "baseline": {},
+      "value_4": {
+        "NSStatusItemSelectionPadding": 4,
+        "NSStatusItemSpacing": 4
+      },
+      "value_8": {
+        "NSStatusItemSelectionPadding": 8,
+        "NSStatusItemSpacing": 8
+      },
+      "value_24": {
+        "NSStatusItemSelectionPadding": 24,
+        "NSStatusItemSpacing": 24
+      },
+      "restored": {}
+    },
+    "same_process": {
+      "requested_value": 4,
+      "write_status": 0,
+      "existing_items_changed": false,
+      "new_items_changed": false,
+      "new_items_match_fresh_process": false,
+      "before_write": {
+        "variable_text": {
+          "button_width": 37,
+          "window_width": 37,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 38,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 48,
+          "intrinsic_width": 21
+        }
+      },
+      "existing_items_after_write": {
+        "variable_text": {
+          "button_width": 37,
+          "window_width": 37,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 38,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 48,
+          "intrinsic_width": 21
+        }
+      },
+      "new_items_after_write": {
+        "variable_text": {
+          "button_width": 37,
+          "window_width": 37,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 38,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 48,
+          "intrinsic_width": 21
+        }
+      },
+      "fresh_process_same_value": {
+        "variable_text": {
+          "button_width": 25,
+          "window_width": 25,
+          "intrinsic_width": 21
+        },
+        "square_symbol": {
+          "button_width": 22,
+          "window_width": 26,
+          "intrinsic_width": 16
+        },
+        "fixed_32": {
+          "button_width": 32,
+          "window_width": 36,
+          "intrinsic_width": 21
+        }
+      },
+      "child_process": {
+        "launched": true,
+        "effective_at_launch": {
+          "NSStatusItemSelectionPadding": 4,
+          "NSStatusItemSpacing": 4
+        },
+        "widths": {
+          "variable_text": {
+            "button_width": 25,
+            "window_width": 25,
+            "intrinsic_width": 21
+          },
+          "square_symbol": {
+            "button_width": 22,
+            "window_width": 26,
+            "intrinsic_width": 16
+          },
+          "fixed_32": {
+            "button_width": 32,
+            "window_width": 36,
+            "intrinsic_width": 21
+          }
+        },
+        "matches_fresh_process": true,
+        "differs_from_parent": true
+      }
+    }
+  }
+}

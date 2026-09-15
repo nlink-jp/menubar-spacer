@@ -65,14 +65,6 @@ final class SpacingPresetTests: XCTestCase {
         XCTAssertEqual(SpacingPreset.wide.value, 24)
     }
 
-    func testOnlyMeasuredPresetsClaimToBeMeasured() {
-        // 4 and 24 were measured on macOS 27.0; 8 is interpolated and must not
-        // be presented as if it had been observed.
-        XCTAssertFalse(SpacingPreset.narrow.isMeasured)
-        XCTAssertTrue(SpacingPreset.minimum.isMeasured)
-        XCTAssertTrue(SpacingPreset.wide.isMeasured)
-    }
-
     func testMatchingRecognisesEachPreset() {
         for preset in SpacingPreset.allCases {
             XCTAssertEqual(SpacingPreset.matching(preset.settings), preset)
