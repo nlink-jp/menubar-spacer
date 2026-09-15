@@ -4,7 +4,7 @@ All notable changes to menubar-spacer are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 Semantic Versioning.
 
-## [Unreleased]
+## [0.1.0] - 2026-09-16
 
 ### Added
 

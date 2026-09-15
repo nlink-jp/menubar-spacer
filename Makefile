@@ -80,9 +80,7 @@ BREW_DESC := Adjust macOS menu bar icon spacing, with exact restore
 BREW_NAME := $(NAME)
 BREW_APP := $(APP_NAME).app
 BREW_BUNDLE_ID := $(BUNDLE_ID)
-# TODO(release): this app is macOS 27+, so the cask floor must be set to the
-# macOS 27 symbol before the first `make brew` — the template default is
-# :big_sur, which would advertise support this app does not have. Confirm the
-# symbol Homebrew uses for macOS 27 at release time (macOS 26 is :tahoe) and set
-# BREW_MACOS_FLOOR here, the way instant-translate does.
+# macOS 27 is :golden_gate in Homebrew's RELEASES table (26 is :tahoe). The
+# template's :big_sur default would advertise support this app does not have.
+BREW_MACOS_FLOOR := :golden_gate
 include scripts/release-brew.mk
