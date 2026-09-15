@@ -50,6 +50,16 @@ final class SpacingSampleTests: XCTestCase {
     /// A symbol that does not resolve draws an empty slot — the geometry stays
     /// right and the drawing looks broken, which is the worst failure mode for
     /// something whose whole job is to be believed.
+    func testAllFourPresetsAreDrawnTogether() {
+        // The comparison is the feature: one strip is not judgeable, four on a
+        // shared left edge are. If a preset stops being drawn, the window stops
+        // being a comparison.
+        let drawn = SpacingPreset.allCases.map { SpacingSample.totalWidth(for: $0.value) }
+        XCTAssertEqual(drawn.count, 4)
+        XCTAssertEqual(Set(drawn).count, 4, "two presets that draw the same width show nothing")
+        XCTAssertEqual(drawn, drawn.sorted(), "the presets must read narrow to wide")
+    }
+
     func testEverySampleSymbolExists() {
         XCTAssertEqual(SpacingSampleRow.symbols.count, SpacingSample.iconCount)
         for symbol in SpacingSampleRow.symbols {

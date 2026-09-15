@@ -27,7 +27,7 @@ apply → quit.
 |---|---|
 | Current state | Current value of both keys ("OS default" when absent), and whether menubar-spacer set it |
 | Preset picker | Minimum (4) / Narrow (8) / OS default / Wide (24) |
-| Sample | Draws six sample icons at the selected spacing beside the one in effect, to the measured widths |
+| Sample | Draws every preset at once — six sample icons each, shared left edge, measured widths — marking the one in effect. Clicking a row chooses it |
 | Apply | Writes the preset, then reads the effective values back to verify the result |
 | Restore | Returns to the recorded prior state, including absence |
 | Guidance | States that a target app must be relaunched — or the user logged out — before the change shows |
@@ -110,8 +110,9 @@ review is mandatory.
 ### Phase 2: Features
 
 5. The SwiftUI window, preset picker, and current-state display.
-6. An in-window sample drawn to the measured geometry, showing the selected
-   spacing beside the one in effect. Replaces the menu bar preview (below).
+6. An in-window sample drawn to the measured geometry, showing every preset at
+   once on a shared left edge. It is also the picker. Replaces the menu bar
+   preview (below).
 7. Relaunch guidance, a path back to OS defaults before uninstalling, app icon.
 
 **Independently reviewable.**
@@ -198,10 +199,11 @@ intelligence and IR — none of which fit.
   it and could not tell whether anything had changed. The photographs in
   [preset-appearance](preset-appearance.md) are legible only because four strips
   share a left edge.
-- The replacement is an **in-window sample**: six icons drawn at the selected
-  spacing beside the one in effect, before applying. It is a scale drawing, and
-  its geometry is pinned by tests to the widths measured on hardware, so it
-  cannot drift away from what it depicts.
+- The replacement is an **in-window sample**: every preset drawn at once, six
+  icons each, on a shared left edge — the arrangement that makes the
+  photographs legible — before applying anything. It doubles as the picker. It
+  is a scale drawing, and its geometry is pinned by tests to the widths
+  measured on hardware, so it cannot drift away from what it depicts.
 - Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
   available to test on, but the chosen policy is to promise only what has been
   measured rather than widen the verification surface.

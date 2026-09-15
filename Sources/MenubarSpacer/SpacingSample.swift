@@ -33,10 +33,16 @@ enum SpacingSample {
     }
 }
 
-/// One strip of sample icons at a given spacing.
+/// One choice: a strip of sample icons at that preset's spacing, the width it
+/// occupies, and whether it is the one in effect.
+///
+/// All four are drawn together on a shared left edge. That is the whole point —
+/// a single strip is not judgeable (docs/en/preset-appearance.md), and the
+/// photographs are legible only because they are stacked this way.
 struct SpacingSampleRow: View {
-    let title: String
-    let value: Int?
+    let preset: SpacingPreset
+    let isSelected: Bool
+    let isCurrent: Bool
 
     /// Every name is checked to resolve by `SpacingSampleTests`: a symbol that
     /// does not exist draws an empty slot, which reads as a bug in the drawing.
@@ -44,47 +50,67 @@ struct SpacingSampleRow: View {
                           "moon.fill", "clock", "magnifyingglass"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
-                Text(title).font(.caption.weight(.medium))
-                Text("\(Int(SpacingSample.totalWidth(for: value))) pt")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-            HStack(spacing: 0) {
-                ForEach(Array(Self.symbols.prefix(SpacingSample.iconCount).enumerated()), id: \.offset) { _, symbol in
-                    Image(systemName: symbol)
-                        .font(.system(size: 13))
-                        .frame(width: SpacingSample.slotWidth(for: value), height: 22)
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                .font(.system(size: 14))
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(preset.title).font(.callout.weight(isSelected ? .semibold : .regular))
+                    Text("\(Int(SpacingSample.totalWidth(for: preset.value))) pt")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                    if isCurrent {
+                        Text("in effect now")
+                            .font(.caption2)
+                            .padding(.horizontal, 5).padding(.vertical, 1)
+                            .background(Capsule().fill(Color.secondary.opacity(0.2)))
+                    }
                 }
+                strip
             }
-            .foregroundStyle(.white)
-            .padding(.vertical, 3)
-            .background(RoundedRectangle(cornerRadius: 5).fill(Color.black.opacity(0.82)))
         }
+        .contentShape(Rectangle())
+    }
+
+    private var strip: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(Self.symbols.prefix(SpacingSample.iconCount).enumerated()), id: \.offset) { _, symbol in
+                Image(systemName: symbol)
+                    .font(.system(size: 13))
+                    .frame(width: SpacingSample.slotWidth(for: preset.value), height: 22)
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.vertical, 3)
+        .background(RoundedRectangle(cornerRadius: 5).fill(Color.black.opacity(0.82)))
     }
 }
 
-/// The sample: what the menu bar holds now, and what the selected preset would
-/// make of it. Drawn to the measured geometry — it is a scale drawing, not a
-/// photograph of this Mac's menu bar, and says so.
+/// The picker and the sample are the same thing: every preset drawn to the
+/// measured widths, on a shared left edge, and choosing one means clicking it.
 struct SpacingSampleView: View {
     let current: SpacingSettings
-    let selected: SpacingPreset
+    @Binding var selection: SpacingPreset
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            switch SpacingSample.value(of: current) {
-            case let .some(value):
-                SpacingSampleRow(title: "Now", value: value)
-            case .none:
-                Text("The current spacing was set outside this app, so it cannot be drawn here.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            ForEach(SpacingPreset.allCases) { preset in
+                Button {
+                    selection = preset
+                } label: {
+                    SpacingSampleRow(preset: preset,
+                                     isSelected: preset == selection,
+                                     isCurrent: SpacingSample.value(of: current) == .some(preset.value))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(preset == selection ? [.isSelected] : [])
             }
 
-            if SpacingSample.value(of: current) != .some(selected.value) {
-                SpacingSampleRow(title: "After applying \(selected.title)", value: selected.value)
+            if SpacingSample.value(of: current) == nil {
+                Text("The spacing in effect was set outside this app, so it is not one of these.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Text("Six sample icons, drawn to the widths measured on this version of macOS.")

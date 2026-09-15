@@ -53,8 +53,8 @@ the output location and the signing.
 - `Tests/MenubarSpacerTests/` — plan, preset, restore-decision, coordinator and
   file-store cases, plus the opt-in hardware tests.
 - `Sources/MenubarSpacer/SpacingSample.swift` — the in-window sample: measured
-  geometry (`iconWidth + value`) and the two rows the window draws. Pure numbers,
-  pinned to the photographs by `SpacingSampleTests`.
+  geometry (`iconWidth + value`) and the four rows the window draws, which are
+  also the picker. Pinned to the photographs by `SpacingSampleTests`.
 - `Sources/SpacingProbe/` — development-only measurement probe. Never copied into
   the `.app`; owns its own preference access so a measurement meant to inform the
   product does not depend on the product's assumptions.
@@ -137,9 +137,12 @@ the guard is the org's standard for every Swift GUI app here
 - **Nothing can show a spacing before it is written**, and a process cannot show
   one it wrote itself — both measured, not assumed. A menu bar preview built on a
   child process was withdrawn: it only worked after a write, and one strip seen
-  once proved unjudgeable. `SpacingSample` draws the comparison instead, and its
-  geometry is pinned by tests to `docs/en/preset-appearance.md`. Never let the
-  drawing and the photographs drift apart.
+  once proved unjudgeable. `SpacingSample` draws the comparison instead — **all
+  four presets at once, on a shared left edge**, which is the arrangement that
+  makes the photographs legible; drawing fewer turns it back into something
+  nobody can judge. Its geometry is pinned by tests to
+  `docs/en/preset-appearance.md`. Never let the drawing and the photographs
+  drift apart.
 - `SpacingPreset.matching` returns nil for a state we did not produce (a
   hand-edited `defaults` write). The UI has to describe that state, not assume it.
 - **"There is a backup" means "something of ours is in effect".** The coordinator

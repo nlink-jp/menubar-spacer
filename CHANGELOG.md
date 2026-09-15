@@ -12,9 +12,10 @@ Semantic Versioning.
   stacking them on one canvas: six icons occupy 186px at Minimum against 258px
   at the macOS default. See docs/en/preset-appearance.md.
 
-- The window: pick a preset, apply it, undo it. It draws six sample icons at
-  the selected spacing beside the one in effect, to the widths measured on this
-  version of macOS, so the choice can be made before writing anything.
+- The window: pick a preset, apply it, undo it. It draws all four presets at
+  once — six sample icons each, on a shared left edge, to the widths measured on
+  this version of macOS — marks the one in effect, and doubles as the picker, so
+  the choice can be compared before anything is written.
 - A single-instance guard, so a second copy exits instead of opening a second
   window onto the same setting.
 

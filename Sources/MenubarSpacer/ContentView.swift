@@ -13,15 +13,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 16) {
             header
 
-            Picker("Spacing", selection: $model.selection) {
-                ForEach(SpacingPreset.allCases) { preset in
-                    Text(preset.title).tag(preset)
-                }
-            }
-            .pickerStyle(.radioGroup)
-            .labelsHidden()
-
-            SpacingSampleView(current: model.state.currentHost, selected: model.selection)
+            SpacingSampleView(current: model.state.currentHost, selection: $model.selection)
 
             HStack(spacing: 10) {
                 Button("Apply") { model.apply() }
