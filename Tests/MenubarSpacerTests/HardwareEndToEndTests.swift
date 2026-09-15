@@ -26,6 +26,14 @@ final class HardwareEndToEndTests: XCTestCase {
         try XCTSkipUnless(preferences.read(.currentHost) == .unset,
                           "refusing to run: the spacing keys are already set on this Mac")
 
+        // Printed before the first write: if this process is killed between a
+        // write and its teardown, this is the whole recovery. The measurement
+        // coordinator has a watchdog for the same reason; XCTest has no place to
+        // put one, so the recovery is handed to the person running it.
+        print("[hardware-test] if this run is interrupted, restore with:\n"
+              + "  defaults -currentHost delete -g NSStatusItemSpacing;"
+              + " defaults -currentHost delete -g NSStatusItemSelectionPadding")
+
         directory = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("menubar-spacer-e2e-" + UUID().uuidString, isDirectory: true)
         coordinator = SpacingCoordinator(
