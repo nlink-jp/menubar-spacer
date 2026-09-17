@@ -19,12 +19,26 @@ NOTARIZE_SCRIPT := scripts/notarize-darwin-app.sh
 # bundle's Resources (sips + iconutil). Missing source → app builds without icon.
 ICON_SRC := assets/AppIcon-1024.png
 
+# macOS records the SDK an app was linked against in LC_BUILD_VERSION, and the
+# system reads that field to decide which generation of window chrome to draw.
+# Since the Xcode 27 / Swift 6.4 toolchain, `swift build` stamps it with the
+# deployment target instead of the SDK actually used, so a release built without
+# this renders with the previous design — square window corners. Passing
+# -platform_version explicitly restores it. MACOS_MIN is read from Package.swift
+# so there is one deployment target, not two.
+MACOS_MIN := $(shell sed -n -e 's/.*\.macOS(\.v\([0-9][0-9]*\)).*/\1.0/p' \
+                            -e 's/.*\.macOS("\([0-9][0-9.]*\)").*/\1/p' Package.swift | head -1)
+MACOS_SDK := $(shell xcrun --sdk macosx --show-sdk-version)
+SDK_LINK_FLAGS := -Xlinker -platform_version -Xlinker macos -Xlinker $(MACOS_MIN) -Xlinker $(MACOS_SDK)
+
 .PHONY: build build-app package verify-release test clean run
 
 ## build: build the release binary
 build:
 	@mkdir -p $(DIST_DIR)
-	swift build -c release
+	@test -n "$(MACOS_MIN)" || { echo "Makefile: no macOS deployment target found in Package.swift"; exit 1; }
+	@test -n "$(MACOS_SDK)" || { echo "Makefile: xcrun could not report the macOS SDK version"; exit 1; }
+	swift build -c release $(SDK_LINK_FLAGS)
 
 ## build-app: assemble the signed .app bundle
 build-app: build
@@ -56,7 +70,12 @@ verify-release:
 	@xcrun stapler validate $(APP_BUNDLE)
 	@test -f "$(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip" || { \
 		echo "verify-release: FAIL — release zip missing: $(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip"; exit 1; }
-	@echo "verify-release: OK ($(VERSION) — marker present, ticket stapled)"
+	@sdk=$$(otool -l "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)" | awk '/LC_BUILD_VERSION/{f=1} f && /^ *sdk /{print $$2; exit}'); \
+		test "$$sdk" = "$(MACOS_SDK)" || { \
+			echo "verify-release: FAIL — linked SDK is $$sdk, expected $(MACOS_SDK)."; \
+			echo "  macOS draws an app linked against an old SDK with the previous window chrome."; \
+			exit 1; }
+	@echo "verify-release: OK ($(VERSION) — marker present, ticket stapled, linked against SDK $(MACOS_SDK))"
 
 ## test: run tests
 test:
