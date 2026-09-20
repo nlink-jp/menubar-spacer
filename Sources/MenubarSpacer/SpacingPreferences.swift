@@ -140,6 +140,11 @@ final class StubSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceW
     /// honours only part of it.
     var readBackOverride: SpacingSettings?
     var writeError: SpacingWriteError?
+    /// How `writeError` fails. False: nothing changes. True: the values land and
+    /// then the error is thrown — which is what `SystemSpacingPreferences` does,
+    /// since `CFPreferencesSetMultiple` has run by the time the flush can fail.
+    /// A test that only knows the first kind proves nothing about the second.
+    var failureLands = false
     private(set) var appliedOperations: [[WriteOperation]] = []
     /// Shared with a `StubBackupStore` so a test can assert the order of store
     /// calls and writes, not merely their counts.
@@ -161,13 +166,14 @@ final class StubSpacingPreferences: SpacingPreferenceReading, SpacingPreferenceW
     func apply(_ operations: [WriteOperation]) throws -> SpacingSettings {
         journal?.note("write")
         appliedOperations.append(operations)
-        if let writeError { throw writeError }
+        if let writeError, !failureLands { throw writeError }
         for operation in operations {
             switch operation {
             case let .set(key, value): currentHost[key] = value
             case let .delete(key): currentHost[key] = .absent
             }
         }
+        if let writeError { throw writeError }
         if let readBackOverride { currentHost = readBackOverride }
         return currentHost
     }

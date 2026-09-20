@@ -117,17 +117,25 @@ the output location and the signing.
   The second is moved aside when the user takes the way home even if nothing is
   written; otherwise, with both keys already unset, nothing ever moves it and
   every value preset refuses for good (ADR-0001 §11, amended).
-- **Every write settles the record, whichever way it leaves.** The record is
-  saved for the target before the first mutation and must be corrected from
-  observation afterwards. `SpacingCoordinator.write` is the only caller of
-  `preferences.apply`, and it settles on the error path too: a write that threw
-  used to leave the record claiming a state the Mac never reached, and the next
-  Undo refused the user's own change as an outsider's (ADR-0001 §2, amended).
+- **Nothing read after a failed write is believed.** `CFPreferencesSetMultiple`
+  has run by the time the flush can fail, so the process may read back a value
+  the disk never got. The pre-write record therefore names both states the Mac
+  can be left in — `applied` (the target) and `replaced` (this app's own earlier
+  value, never an outsider's) — and a write that throws leaves it exactly so;
+  `isExplainedByOurWrite` accepts either. A first repair settled the record from
+  a read after the failure; review showed it could drop the original on a failed
+  restore and adopt an outside value, and it never shipped (ADR-0001 §2,
+  amended). `StubSpacingPreferences.failureLands` models the failure the OS
+  actually produces: every failed-write test runs both ways, because one that
+  only knows "nothing changed" proves nothing about the other.
 - **What is in effect is not what this host holds.** `SpacingState.effective`
-  overlays the current-host keys on the every-host ones, which is where
+  overlays the current-host keys on the every-host ones, per key, which is where
   `defaults write -g` without `-currentHost` puts a value. The window describes
-  and marks `effective`; while it differs from `currentHost` it says so, because
-  "macOS default" then returns to that value, not to Apple's.
+  and marks `effective`, keeps a note on screen whenever an every-host value
+  exists — also while this Mac's own setting hides it — and every outcome that
+  leaves this Mac without a setting of its own says which value now applies
+  (`OutcomeMessage.apply/restore(_:everyHost:)`): "macOS default" then returns
+  to that value, not to Apple's.
 - **Requesting no TCC permission is a requirement, not an accident.** Do not add
   Accessibility or any other grant without a deliberate scope decision.
 - Docs in sync: `README.md` and `README.ja.md` in the same commit.

@@ -74,6 +74,12 @@ defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delet
 
 Then quit and reopen the affected apps, or log out and back in.
 
+That clears this Mac's own setting, which is the only one the app writes. If the
+spacing is still not Apple's, a value is set for every Mac you sign in to — the
+widely copied `defaults write -g NSStatusItemSpacing …` without `-currentHost`
+puts it there. The app shows that value and leaves it alone; the same two
+commands without `-currentHost` remove it.
+
 ## Build from source
 
 ```bash

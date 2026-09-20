@@ -3,6 +3,10 @@ import Foundation
 enum ApplyOutcome: Equatable {
     /// The keys already held the requested state; nothing was written.
     case alreadyApplied(SpacingSettings)
+    /// As above, and the saved original — which could not be decoded — was moved
+    /// aside on the way. Its own case so that the sentence for it does not say
+    /// "nothing was changed".
+    case alreadyAppliedRecordSetAside(SpacingSettings)
     case applied(SpacingSettings)
     /// Applied, but over a state neither we nor the record accounts for: someone
     /// changed the keys outside this app after our last write. Reported rather
@@ -67,6 +71,11 @@ extension SpacingState {
 
     /// True when some of what is in effect comes from the every-host value.
     var inheritsFromEveryHost: Bool { effective != currentHost }
+
+    /// True when an every-host value exists at all — also while this host's own
+    /// setting hides it, because that is when "macOS default" is about to mean
+    /// something other than Apple's default.
+    var hasEveryHostValue: Bool { anyHost != .unset }
 }
 
 /// Applying and undoing, in the one order that is safe: the way back is stored
@@ -132,6 +141,7 @@ struct SpacingCoordinator {
                     // is still left exactly where it is (ADR-0001 §11): that
                     // failure may be gone on the next attempt.
                     try backups.quarantine()
+                    return .alreadyAppliedRecordSetAside(current)
                 } else if let existing, current == existing.original {
                     discardRecord()
                 }
@@ -143,17 +153,29 @@ struct SpacingCoordinator {
                 !RestorePlanner.isExplainedByOurWrite(current: current, record: $0)
             } ?? false
 
-            // The way back is stored before the first mutation, never after it.
+            // The way back is stored before the first mutation, never after it —
+            // so it has to be written for a state the Mac is not in yet. It
+            // therefore names both states the Mac can be left in: the target,
+            // and what is being replaced when that is this app's own earlier
+            // write (never an outsider's: §10). If the write below throws, the
+            // record is left exactly like that. Nothing read after a failed
+            // flush can be trusted to say which of the two the Mac holds, and
+            // the first attempt at this — settling from such a read — could
+            // drop the record, and the original with it.
             if !damaged {
-                try backups.save(BackupRecord(original: original, applied: target, capturedAt: now()))
+                let replaced = (existing != nil && !external) ? current : nil
+                try backups.save(BackupRecord(original: original, applied: target,
+                                              capturedAt: now(), replaced: replaced))
             }
 
-            let actual = try write(operations, recordFor: damaged ? nil : original)
+            let actual = try preferences.apply(operations)
 
             if damaged {
                 // Only now, after a write this app actually performed, is the
                 // unreadable file moved aside — and moved, not deleted.
                 try backups.quarantine()
+            } else {
+                try settle(original: original, actual: actual)
             }
 
             guard actual == target else {
@@ -187,48 +209,20 @@ struct SpacingCoordinator {
                 return .alreadyOriginal
             case let .restore(operations):
                 guard let record else { return .nothingToRestore }
-                // The record is kept describing the Mac whatever the write
-                // does, so pressing Restore again resumes instead of blaming an
-                // outsider; once the Mac is back at its original it is dropped.
-                let actual = try write(operations, recordFor: record.original)
+                // A restore stores no intention first — the record it works
+                // from already explains both the state it leaves and the one
+                // it aims at — so a write that throws leaves it as it is, and
+                // pressing Restore again resumes.
+                let actual = try preferences.apply(operations)
                 guard actual == record.original else {
+                    // Keep the record describing the Mac, so pressing Restore
+                    // again resumes instead of blaming an outsider.
+                    try settle(original: record.original, actual: actual)
                     return .noEffect(expected: record.original, actual: actual)
                 }
+                discardRecord()
                 return .restored(actual)
             }
-        }
-    }
-
-    /// Writes, and leaves the record describing what the Mac holds afterwards —
-    /// on the way out through an error exactly as on success.
-    ///
-    /// The record is saved for the *target* before the first mutation, because
-    /// the way back has to exist before anything changes. That is a statement
-    /// of intention, and ADR-0001 §2 allows the record none: it is corrected
-    /// from observation once the write returns. The first version corrected it
-    /// only when the write returned normally. A write that threw — a failed
-    /// flush is the one the OS actually produces — left the record claiming a
-    /// state the Mac never reached, and the next Undo compared that claim with
-    /// the live keys, found them different, and refused the user's own change
-    /// as somebody else's.
-    ///
-    /// `original` is nil when there is no record to keep (the damaged-file
-    /// path, which writes without one).
-    private func write(_ operations: [WriteOperation],
-                       recordFor original: SpacingSettings?) throws -> SpacingSettings {
-        do {
-            let actual = try preferences.apply(operations)
-            if let original { try settle(original: original, actual: actual) }
-            return actual
-        } catch {
-            // Observed, not taken from the error: what matters is what the Mac
-            // holds now. Best effort — the write's own failure is the error the
-            // caller needs, and a record that could not be corrected is no worse
-            // than the one this replaces.
-            if let original {
-                try? settle(original: original, actual: preferences.read(.currentHost))
-            }
-            throw error
         }
     }
 

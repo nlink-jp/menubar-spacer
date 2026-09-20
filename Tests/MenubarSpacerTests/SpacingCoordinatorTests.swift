@@ -48,10 +48,7 @@ final class SpacingCoordinatorTests: XCTestCase {
     func testTheBackupIsStoredBeforeTheFirstWrite() throws {
         preferences.writeError = .synchronizationFailed(actual: .unset)
         XCTAssertThrowsError(try coordinator.apply(.wide))
-        // The order is what this test is about, and the journal holds it. The
-        // record itself used to be left behind as the evidence — claiming
-        // `wide` was applied on a Mac still at its original — and is now
-        // corrected on the way out (testAFailedFirstWriteLeavesNoRecordBehind).
+        XCTAssertEqual(backups.record?.original, .unset)
         XCTAssertEqual(backups.journal.firstIndex(of: "save"),
                        backups.journal.firstIndex(of: "write").map { $0 - 1 })
     }
@@ -184,7 +181,10 @@ final class SpacingCoordinatorTests: XCTestCase {
     func testARecordNoRetryCanReadIsSetAsideOnTheWayHome() throws {
         backups.loadError = .undecodable("not JSON")
 
-        XCTAssertEqual(try coordinator.apply(.osDefault), .alreadyApplied(.unset))
+        let outcome = try coordinator.apply(.osDefault)
+        XCTAssertEqual(outcome, .alreadyAppliedRecordSetAside(.unset))
+        XCTAssertFalse(OutcomeMessage.apply(outcome).contains("Nothing was changed"),
+                       "a file was moved: the sentence must not say nothing changed")
         XCTAssertEqual(backups.quarantineCount, 1)
         XCTAssertEqual(backups.clearCount, 0, "moved aside, never deleted")
         XCTAssertTrue(preferences.appliedOperations.isEmpty)
@@ -202,39 +202,123 @@ final class SpacingCoordinatorTests: XCTestCase {
     }
 
     // MARK: a write that fails
+    //
+    // When the flush fails the values may or may not have reached the disk, and
+    // nothing read afterwards says which: the OS has already applied them to
+    // the process's own view. So every case is run both ways — the write landed,
+    // or it did not — and "after a relaunch" is modelled by putting the keys
+    // where the disk would have them.
 
-    /// The record is saved for the target before the write, and used to be
-    /// corrected only when the write returned. A flush that failed left it
-    /// claiming a state the Mac never reached, and the next Undo then refused
-    /// the user's own earlier change as somebody else's.
-    func testAFailedWriteLeavesARecordThatMatchesTheMac() throws {
+    /// The defect: the record named only the target. A second change that
+    /// failed left the Mac on the first one, which the record no longer
+    /// mentioned, and Undo refused the user's own change as an outsider's.
+    func testUndoWorksAfterAFailedSecondChangeWhicheverWayItFailed() throws {
+        for lands in [false, true] {
+            setUp()
+            XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+
+            preferences.writeError = .synchronizationFailed(actual: .uniform(8))
+            preferences.failureLands = lands
+            XCTAssertThrowsError(try coordinator.apply(.minimum))
+            XCTAssertEqual(backups.record?.original, .unset, "lands=\(lands)")
+            XCTAssertEqual(backups.record?.applied, .uniform(4), "lands=\(lands)")
+            XCTAssertEqual(backups.record?.replaced, .uniform(8), "lands=\(lands)")
+
+            preferences.writeError = nil
+            XCTAssertEqual(try coordinator.restore(), .restored(.unset), "lands=\(lands)")
+            XCTAssertNil(backups.record, "lands=\(lands)")
+        }
+    }
+
+    /// And when the process saw the write land but the disk never got it: after
+    /// a relaunch the Mac is back on the first change, and Undo still knows it.
+    func testUndoWorksWhenTheDiskNeverGotWhatTheProcessSaw() throws {
         XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
-
-        preferences.writeError = .synchronizationFailed(actual: .uniform(8))
+        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
+        preferences.failureLands = true
         XCTAssertThrowsError(try coordinator.apply(.minimum))
-        XCTAssertEqual(preferences.currentHost, .uniform(8), "the stub's failed write changes nothing")
-        XCTAssertEqual(backups.record?.applied, .uniform(8), "the record describes the Mac, not the attempt")
-        XCTAssertEqual(backups.record?.original, .unset)
 
+        preferences.currentHost = .uniform(8)   // relaunch: the flush had failed
         preferences.writeError = nil
         XCTAssertEqual(try coordinator.restore(), .restored(.unset))
     }
 
-    func testAFailedFirstWriteLeavesNoRecordBehind() throws {
+    func testAFailedFirstChangeLeavesAWayBackOnlyIfSomethingChanged() throws {
         preferences.writeError = .synchronizationFailed(actual: .unset)
         XCTAssertThrowsError(try coordinator.apply(.minimum))
-        XCTAssertNil(backups.record, "nothing of ours is in effect, so there is nothing to undo")
-    }
+        preferences.writeError = nil
+        XCTAssertEqual(try coordinator.restore(), .alreadyOriginal)
+        XCTAssertNil(backups.record)
 
-    func testAFailedRestoreWriteCanBeRetried() throws {
-        XCTAssertEqual(try coordinator.apply(.wide), .applied(SpacingPreset.wide.settings))
-
-        preferences.writeError = .synchronizationFailed(actual: SpacingPreset.wide.settings)
-        XCTAssertThrowsError(try coordinator.restore())
-        XCTAssertEqual(backups.record?.applied, SpacingPreset.wide.settings)
-
+        setUp()
+        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
+        preferences.failureLands = true
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
         preferences.writeError = nil
         XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+    }
+
+    /// `replaced` is this app's own earlier state and never an outsider's
+    /// (ADR-0001 §10): a change made outside the app is still not undone
+    /// silently because one of ours failed on top of it.
+    func testAFailedChangeOverAnOutsideValueDoesNotAdoptIt() throws {
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
+        preferences.currentHost = .uniform(30)          // someone else
+        preferences.writeError = .synchronizationFailed(actual: .uniform(30))
+        XCTAssertThrowsError(try coordinator.apply(.wide))
+        XCTAssertNil(backups.record?.replaced)
+
+        preferences.writeError = nil
+        XCTAssertEqual(try coordinator.restore(),
+                       .refusedExternalChange(current: .uniform(30), original: .unset))
+        XCTAssertEqual(preferences.currentHost, .uniform(30))
+    }
+
+    /// A restore stores no intention, so a failed one changes nothing about the
+    /// record — in particular it never drops it on the strength of what the
+    /// process reads back.
+    func testAFailedRestoreNeverLosesTheOriginal() throws {
+        for lands in [false, true] {
+            setUp()
+            preferences.currentHost = .uniform(12)
+            XCTAssertEqual(try coordinator.apply(.wide), .applied(SpacingPreset.wide.settings))
+
+            preferences.writeError = .synchronizationFailed(actual: .uniform(12))
+            preferences.failureLands = lands
+            XCTAssertThrowsError(try coordinator.restore())
+            XCTAssertEqual(backups.record?.original, .uniform(12), "lands=\(lands)")
+
+            // Relaunch with the disk never having got the restore.
+            preferences.currentHost = SpacingPreset.wide.settings
+            preferences.writeError = nil
+            XCTAssertEqual(try coordinator.restore(), .restored(.uniform(12)), "lands=\(lands)")
+        }
+    }
+
+    func testAWriteThatWasReadBackLeavesNoDoubtInTheRecord() throws {
+        _ = try coordinator.apply(.narrow)
+        _ = try coordinator.apply(.minimum)
+        XCTAssertEqual(backups.record?.applied, .uniform(4))
+        XCTAssertNil(backups.record?.replaced)
+    }
+
+    func testARecordFromBeforeThisFieldStillDecodes() throws {
+        let modern = BackupRecord(original: .unset, applied: .uniform(4),
+                                  capturedAt: Date(timeIntervalSinceReferenceDate: 0),
+                                  replaced: .uniform(8))
+        let roundTrip = try JSONDecoder().decode(BackupRecord.self,
+                                                 from: JSONEncoder().encode(modern))
+        XCTAssertEqual(roundTrip, modern)
+        // An earlier version's record is this one without the key: taken from
+        // the encoder's real output rather than from a hand-written literal,
+        // which would only be as good as a guess at its shape.
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(
+            with: JSONEncoder().encode(modern)) as? [String: Any])
+        json.removeValue(forKey: "replaced")
+        let legacy = try JSONDecoder().decode(BackupRecord.self,
+                                              from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertNil(legacy.replaced)
+        XCTAssertEqual(legacy.applied, .uniform(4))
     }
 
     // MARK: what is in effect
@@ -254,7 +338,48 @@ final class SpacingCoordinatorTests: XCTestCase {
         let state = coordinator.state()
         XCTAssertEqual(state.effective, .uniform(4))
         XCTAssertFalse(state.inheritsFromEveryHost)
-        XCTAssertNil(SpacingDescription.everyHostNote(state))
+    }
+
+    /// The overlay is per key: the two keys are independent preferences, and the
+    /// OS resolves each on its own.
+    func testTheOverlayIsPerKey() {
+        preferences.currentHost = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)
+        preferences.anyHost = SpacingSettings(spacing: .integer(9), selectionPadding: .integer(6))
+        let state = coordinator.state()
+        XCTAssertEqual(state.effective,
+                       SpacingSettings(spacing: .integer(4), selectionPadding: .integer(6)))
+        XCTAssertTrue(state.inheritsFromEveryHost)
+    }
+
+    /// While this Mac's own setting hides the every-host one, the note is still
+    /// there: that is when "macOS default" is about to mean something else.
+    func testTheEveryHostValueIsMentionedEvenWhileItIsOverridden() throws {
+        preferences.anyHost = .uniform(6)
+        _ = try coordinator.apply(.minimum)
+        let note = try XCTUnwrap(SpacingDescription.everyHostNote(coordinator.state()))
+        XCTAssertTrue(note.contains("6"), note)
+        XCTAssertTrue(note.contains("not to Apple's"), note)
+    }
+
+    /// The sentences must not contradict the header: with an every-host value,
+    /// clearing this Mac's setting does not produce "the macOS default".
+    func testOutcomesSayWhatAppliesWhenThisMacsSettingIsCleared() throws {
+        preferences.anyHost = .uniform(6)
+        let already = OutcomeMessage.apply(try coordinator.apply(.osDefault), everyHost: .uniform(6))
+        XCTAssertTrue(already.contains("applies: 6"), already)
+
+        _ = try coordinator.apply(.minimum)
+        let back = OutcomeMessage.apply(try coordinator.apply(.osDefault), everyHost: .uniform(6))
+        XCTAssertTrue(back.contains("applies: 6"), back)
+
+        _ = try coordinator.apply(.minimum)
+        let undone = OutcomeMessage.restore(try coordinator.restore(), everyHost: .uniform(6))
+        XCTAssertTrue(undone.contains("applies: 6"), undone)
+
+        // And nothing is added when the outcome leaves a setting of its own, or
+        // when there is no every-host value.
+        XCTAssertFalse(OutcomeMessage.apply(.applied(.uniform(4)), everyHost: .uniform(6)).contains("applies:"))
+        XCTAssertFalse(OutcomeMessage.apply(.applied(.unset)).contains("applies:"))
     }
 
     func testNothingIsSaidWhenNoEveryHostValueExists() {
@@ -428,6 +553,17 @@ final class FileBackupStoreTests: XCTestCase {
         XCTAssertEqual(salvaged.count, 1)
         let content = try String(contentsOf: directory.appendingPathComponent(salvaged[0]), encoding: .utf8)
         XCTAssertTrue(content.contains("original"), "the bytes a person could still read must survive")
+    }
+
+    func testTwoQuarantinesInOneSecondKeepBothFiles() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        for _ in 0..<3 {
+            try Data("not a record".utf8).write(to: store.url)
+            XCTAssertNoThrow(try store.quarantine())
+        }
+        let kept = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+            .filter { $0.contains(".damaged-") }
+        XCTAssertEqual(kept.count, 3, "\(kept)")
     }
 
     func testExclusiveAccessSerialisesTwoConcurrentHolders() throws {

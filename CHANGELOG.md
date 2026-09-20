@@ -9,25 +9,30 @@ Semantic Versioning.
 ### Fixed
 
 - **After a change that failed to save, "Undo my changes" refused to undo your
-  earlier one.** The app records the target before it writes and corrects the
-  record afterwards — but only did so when the write returned normally. When
-  macOS would not save the change, the record went on describing a spacing the
-  Mac never had, and the next Undo read that as someone else's change and
-  declined. The record is now corrected whichever way the write ends. Restore
-  had the same gap.
+  earlier one.** The app records the target before it writes. When macOS would
+  not save the change, the Mac stayed on your earlier spacing, which the record
+  no longer mentioned, and the next Undo read it as someone else's change and
+  declined. The record now names both the new spacing and the one it replaces
+  until the write has been read back, so Undo recognises either. It is not
+  guessed from a read after the failure: macOS can report a value it did not
+  save.
 - **A saved original that cannot be decoded no longer locks the app.** With the
   spacing already at the macOS default, choosing the default wrote nothing, so
   the unusable file was never moved aside: every other spacing refused from then
   on, Undo could not use the file either, and the message said that choice would
-  clear it. It is now moved aside (never deleted) when you choose the default. A
-  file that merely could not be read is still left alone — that may pass — and
-  its message no longer promises a clearing.
+  clear it. It is now moved aside (never deleted) when you choose the default,
+  and the message says so instead of "nothing was changed". A file that merely
+  could not be read is still left alone — that may pass — and its message no
+  longer promises a clearing. Two files set aside within one second no longer
+  collide.
 - **A spacing set for every Mac was invisible.** `defaults write -g
   NSStatusItemSpacing …` without `-currentHost` — the widely copied recipe — sets
   a value this app does not write but the menu bar does use. The window called
   that "the macOS default" and marked the default row "in effect". It now shows
-  the spacing actually in effect and says where it comes from, because choosing
-  "macOS default" then returns to that value, not to Apple's.
+  the spacing actually in effect, keeps a note on screen while such a value
+  exists, and says which spacing applies whenever a change leaves this Mac
+  without a setting of its own — because "macOS default" then returns to that
+  value, not to Apple's.
 
 ### Documentation
 

@@ -70,6 +70,12 @@ defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delet
 
 実行後、対象のアプリを終了して開き直すか、一度ログアウトしてください。
 
+これで消えるのは、このアプリが書き込む唯一の設定——この Mac 自身の設定——です。それでも間隔が
+Apple の既定に戻らない場合は、サインインするすべての Mac 向けの値が設定されています（広く
+出回っている `defaults write -g NSStatusItemSpacing …` は `-currentHost` を付けないので、
+そこへ書き込みます）。アプリはその値を表示するだけで変更しません。消すには、上の 2 つの
+コマンドから `-currentHost` を外して実行します。
+
 ## ソースからのビルド
 
 ```bash

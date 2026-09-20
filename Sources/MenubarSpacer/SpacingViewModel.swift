@@ -32,7 +32,8 @@ final class SpacingViewModel: ObservableObject {
 
     func apply() {
         do {
-            message = OutcomeMessage.apply(try coordinator.apply(selection))
+            let outcome = try coordinator.apply(selection)
+            message = OutcomeMessage.apply(outcome, everyHost: coordinator.state().anyHost)
         } catch {
             message = OutcomeMessage.failure(error)
         }
@@ -41,7 +42,8 @@ final class SpacingViewModel: ObservableObject {
 
     func restore() {
         do {
-            message = OutcomeMessage.restore(try coordinator.restore())
+            let outcome = try coordinator.restore()
+            message = OutcomeMessage.restore(outcome, everyHost: coordinator.state().anyHost)
         } catch {
             message = OutcomeMessage.failure(error)
         }

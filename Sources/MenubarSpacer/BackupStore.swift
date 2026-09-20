@@ -76,8 +76,17 @@ struct FileBackupStore: BackupStoring {
     func quarantine() throws {
         guard FileManager.default.fileExists(atPath: url.path) else { return }
         let stamp = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        let destination = url.deletingLastPathComponent()
-            .appendingPathComponent(url.lastPathComponent + ".damaged-" + stamp)
+        // The stamp has one-second resolution, and a second unusable file within
+        // the same second made the move fail — the user was then told the
+        // spacing "could not be changed". A numbered suffix keeps both.
+        let folder = url.deletingLastPathComponent()
+        let base = url.lastPathComponent + ".damaged-" + stamp
+        var destination = folder.appendingPathComponent(base)
+        var n = 1
+        while FileManager.default.fileExists(atPath: destination.path) {
+            n += 1
+            destination = folder.appendingPathComponent("\(base)-\(n)")
+        }
         try FileManager.default.moveItem(at: url, to: destination)
     }
 

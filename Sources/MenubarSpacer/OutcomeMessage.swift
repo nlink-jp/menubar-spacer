@@ -20,12 +20,53 @@ enum OutcomeMessage {
         the clock, Control Center — keep their spacing either way.
         """
 
-    static func apply(_ outcome: ApplyOutcome) -> String {
+    /// `everyHost` is the value set for every Mac outside this app, if any. When
+    /// this Mac's own setting is cleared, that value is what applies, and a
+    /// sentence that said "the macOS default" under a header reading "set to 6"
+    /// was the first version of this.
+    static func apply(_ outcome: ApplyOutcome, everyHost: SpacingSettings = .unset) -> String {
+        withEveryHost(applyText(outcome), settings: settings(of: outcome), everyHost: everyHost)
+    }
+
+    static func restore(_ outcome: RestoreOutcome, everyHost: SpacingSettings = .unset) -> String {
+        withEveryHost(restoreText(outcome), settings: settings(of: outcome), everyHost: everyHost)
+    }
+
+    /// Appended only when the outcome left this Mac without a setting of its
+    /// own while one exists for every Mac: that is the value now in use.
+    private static func withEveryHost(_ text: String, settings: SpacingSettings?,
+                                      everyHost: SpacingSettings) -> String {
+        guard settings == .unset, everyHost != .unset else { return text }
+        return text + " This Mac has no setting of its own now, so the one made for every "
+            + "Mac outside this app applies: \(describe(everyHost))."
+    }
+
+    private static func settings(of outcome: ApplyOutcome) -> SpacingSettings? {
+        switch outcome {
+        case let .applied(s), let .alreadyApplied(s), let .alreadyAppliedRecordSetAside(s): return s
+        case let .appliedOverExternalChange(s, _): return s
+        case let .noEffect(_, actual): return actual
+        }
+    }
+
+    private static func settings(of outcome: RestoreOutcome) -> SpacingSettings? {
+        switch outcome {
+        case let .restored(s): return s
+        case let .noEffect(_, actual): return actual
+        default: return nil
+        }
+    }
+
+    private static func applyText(_ outcome: ApplyOutcome) -> String {
         switch outcome {
         case let .applied(settings):
             return "\(nowReads(settings)). \(relaunchNote)"
         case let .alreadyApplied(settings):
             return "Already \(describe(settings)). Nothing was changed."
+        case let .alreadyAppliedRecordSetAside(settings):
+            return "Already \(describe(settings)), so the spacing was not changed. The saved "
+                + "original that could not be read has been moved aside; you can choose any "
+                + "spacing again."
         case let .appliedOverExternalChange(settings, replaced):
             return "\(nowReads(settings)), replacing \(describe(replaced)) that was set "
                 + "outside this app. \(relaunchNote)"
@@ -35,7 +76,7 @@ enum OutcomeMessage {
         }
     }
 
-    static func restore(_ outcome: RestoreOutcome) -> String {
+    private static func restoreText(_ outcome: RestoreOutcome) -> String {
         switch outcome {
         case let .restored(settings):
             return "Put back the spacing this Mac had before: \(describe(settings)). \(relaunchNote)"

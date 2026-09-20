@@ -37,15 +37,28 @@ deletion, taking the same code path as restore.
 
 ### 2. The record is captured from observation, never from intention
 
-**Amended 2026-09-21: on the way out through an error too.** The record has to
-exist before the first mutation, so it is first saved for the *target* — an
-intention — and corrected from observation when the write returns. The first
-implementation corrected it only on a normal return. A write that threw (a
-failed flush) left the record claiming a state the Mac never reached; the next
-Undo compared that claim with the live keys, found them different, and refused
-the user's own earlier change as an outsider's. Every write now goes through
-one function that settles the record from what the Mac holds, whichever way it
-leaves. Restore had the same gap and takes the same path.
+**Amended 2026-09-21: while a write is in doubt, the record names both states.**
+The record has to exist before the first mutation, so it is first saved for the
+*target* — an intention — and corrected from the read-back when the write
+returns. A write that threw (a failed flush) skipped the correction and left the
+record naming only a state the Mac might never have reached: after a second
+change failed, the Mac was still on the first one, the record no longer
+mentioned it, and Undo refused the user's own change as an outsider's.
+
+The first repair settled the record from a read made after the failure, and was
+withdrawn in review before release: `CFPreferencesSetMultiple` has already run
+when the flush fails, so the process can read back a value the disk never got. A
+record corrected from that read could drop the original on a failed restore, and
+could adopt an outsider's value as this app's own (against §10).
+
+So nothing is read after a failure. The pre-write record carries a third field,
+`replaced`: what this app's own earlier write had left, when that is what the
+write in progress replaces — never an outsider's value. If the write throws, the
+record stays exactly as written and explains either outcome; §10's test accepts
+`original`, `applied` or `replaced` per key. A write that returns is read back as
+before, and that correction clears `replaced`. Restore stores no intention
+first, so it needed no change. The field is optional: an earlier record decodes
+without it, and an earlier version ignores it.
 
 Both fields of `BackupRecord` hold what was actually read:
 
@@ -146,6 +159,14 @@ either, and the message said this very choice "clears it". So an undecodable
 file is moved aside when the user takes the way home even if nothing is
 written. The unreadable case is unchanged, and its message no longer promises
 a clearing that a transient failure does not get.
+
+"The same bytes on every later read" is true of this version. A file written by a
+*newer* version in a format this one cannot decode is undecodable here and
+readable there; after a downgrade, the way home sets it aside too. Nothing is
+lost — the bytes keep the `.damaged-` name and the newer version's file can be
+put back by hand — and the alternative is the dead end above, for a case this
+app has no way to tell apart. Names get a numbered suffix when two files are set
+aside within one second.
 
 ### 12. Every write is verified by reading it back, and only differing keys are written
 

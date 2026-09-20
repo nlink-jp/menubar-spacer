@@ -76,10 +76,16 @@ enum SpacingDescription {
     /// Said only when it changes what a choice here will do: the value in
     /// effect is not this Mac's own, so "macOS default" does not mean Apple's.
     static func everyHostNote(_ state: SpacingState) -> String? {
-        guard state.inheritsFromEveryHost else { return nil }
-        return "That spacing is set for every Mac you sign in to, outside this app. "
-            + "A spacing chosen here overrides it on this Mac; “macOS default” here "
-            + "returns to that value, not to Apple's."
+        guard state.hasEveryHostValue else { return nil }
+        if state.inheritsFromEveryHost {
+            return "That spacing is set for every Mac you sign in to, outside this app. "
+                + "A spacing chosen here overrides it on this Mac; “macOS default” here "
+                + "returns to that value, not to Apple's."
+        }
+        // Shown while this Mac's own setting hides it, too: this is the moment
+        // "macOS default" is about to mean something else.
+        return "A spacing (\(spacing(state.anyHost))) is also set for every Mac you sign in to, "
+            + "outside this app. “macOS default” here returns to that value, not to Apple's."
     }
 
     static func backup(_ status: BackupStatus?) -> String {
