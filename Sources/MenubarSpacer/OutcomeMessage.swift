@@ -66,9 +66,15 @@ enum OutcomeMessage {
 
         /// "the spacing is still 8" / "this Mac still has no spacing of its own…"
         func still(_ settings: SpacingSettings) -> String {
-            settings == .unset && inherits(settings)
-                ? "this Mac still has " + describe(settings)
-                : "the spacing is still \(describe(settings))"
+            if settings == .unset && inherits(settings) {
+                return "this Mac still has " + describe(settings)
+            }
+            // The two keys differ: the write took for one of them. "Still a
+            // setting made outside this app" — what this said — was false twice.
+            if settings != .unset && settings.uniformValue == nil {
+                return "only part of it took effect"
+            }
+            return "the spacing is still \(describe(settings))"
         }
 
         /// What an apply replaced, when someone else had left it there.

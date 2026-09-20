@@ -1,0 +1,26 @@
+pre  NSStatusItemSpacing=4 (integer)  NSStatusItemSelectionPadding=4 (integer)
+manual recovery if this dies: defaults -currentHost write -g NSStatusItemSpacing -int 4; defaults -currentHost write -g NSStatusItemSelectionPadding -int 4
+== clear the keys
+before: api=<absent> disk=<absent> mtime=658.927
+set 8: synchronize=true
+  set    +    11 ms  api=8  disk=<absent>  mtime=658.927
+  set    +    71 ms  api=8  disk=<absent>  mtime=658.927
+  set    +   276 ms  api=8  disk=<absent>  mtime=658.927
+  set    +   784 ms  api=8  disk=<absent>  mtime=658.927
+  set    +  1795 ms  api=8  disk=<absent>  mtime=658.927
+  set    +  3806 ms  api=8  disk=<absent>  mtime=658.927
+  set    +  6813 ms  api=8  disk=8  mtime=663.990
+  set    + 10820 ms  api=8  disk=8  mtime=663.990
+  set    + 15824 ms  api=8  disk=8  mtime=663.990
+delete: synchronize=true
+  delete +    10 ms  api=<absent>  disk=8  mtime=663.990
+  delete +    71 ms  api=<absent>  disk=8  mtime=663.990
+  delete +   282 ms  api=<absent>  disk=8  mtime=663.990
+  delete +   793 ms  api=<absent>  disk=8  mtime=663.990
+  delete +  1816 ms  api=<absent>  disk=8  mtime=663.990
+  delete +  3833 ms  api=<absent>  disk=8  mtime=663.990
+  delete +  6838 ms  api=<absent>  disk=8  mtime=663.990
+  delete + 10844 ms  api=<absent>  disk=<absent>  mtime=683.874
+  delete + 15855 ms  api=<absent>  disk=<absent>  mtime=683.874
+[restore] wrote back NSStatusItemSpacing=4 NSStatusItemSelectionPadding=4
+post NSStatusItemSpacing=4 (integer)  NSStatusItemSelectionPadding=4 (integer)

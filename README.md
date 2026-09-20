@@ -53,7 +53,9 @@ icons side by side occupy 174px at Minimum against 246px at the default — see
   writing and tells you when they did not take effect. What it cannot tell is a
   Mac that cannot save its preferences at all (a full disk, a locked preferences
   file): macOS then reports success and goes back to the old spacing within a
-  minute.
+  minute — for a change and for an Undo alike, so on such a Mac the saved
+  original can be lost. Fix the Mac first; nothing any app changes is kept
+  until then.
 - The two keys are always changed together; their individual effects are unknown.
 - Settings apply to the current user on the current Mac only.
 

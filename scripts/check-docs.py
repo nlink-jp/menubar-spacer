@@ -22,6 +22,14 @@ RETIRED = {
     "previewNote": "the preview message was withdrawn with the preview",
     "isMeasured": "every preset value is measured now; the provenance flag was removed",
     "isPlausible": "values read from a Mac are never range-checked (ADR-0001 §3)",
+    # Drafts of the 2026-09-21 amendment that never shipped (ADR-0001, Rejected alternatives).
+    "ProcessTrust": "no state is kept for a write in doubt; the premise was measured false",
+    "processInDoubt": "no state is kept for a write in doubt; the premise was measured false",
+    "isInDoubt": "no state is kept for a write in doubt; the premise was measured false",
+    "failureLands": "the stub models what the API reports, not a flush that half-lands",
+    "savedOnDisk": "the plist is not read to verify a write: it lags a real one by seconds",
+    "currentHostFile": "the plist is not read to verify a write: it lags a real one by seconds",
+    "writesAreNotSaved": "an unsaved write is invisible at write time; it is a documented limit",
 }
 
 SEARCHED = [ROOT / "Sources", ROOT / "Tests", ROOT / "docs", ROOT / "spikes"]

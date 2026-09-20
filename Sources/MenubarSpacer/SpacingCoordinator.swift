@@ -156,9 +156,13 @@ struct SpacingCoordinator {
             let actual: SpacingSettings
             if damaged {
                 actual = try preferences.apply(operations)
-                // Only now, after a write this app actually performed, is the
-                // unreadable file moved aside — and moved, not deleted.
-                try backups.quarantine()
+                // Only now, after a write that took this Mac home, is the
+                // unreadable file moved aside — and moved, not deleted. A write
+                // the OS ignored, or that landed on one key only, leaves this
+                // app's value in effect, and the file may be the way back from
+                // it: v0.1.0 set it aside regardless. A file that does not
+                // decode is no way back whatever happened, so it still goes.
+                if actual == target || beyondRetry { try backups.quarantine() }
             } else {
                 actual = try write(operations, from: current, record: existing,
                                    original: original, storingFirst: target)

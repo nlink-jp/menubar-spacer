@@ -162,6 +162,34 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertEqual(backups.clearCount, 0)
     }
 
+    /// The way home was taken and the Mac did not go there: this app's value is
+    /// still in effect, and a file that merely could not be read may be the way
+    /// back from it. v0.1.0 set it aside regardless.
+    func testAnUnreadableBackupStaysWhenTheWayHomeDidNotTake() throws {
+        preferences.currentHost = .uniform(24)
+        backups.loadError = .unreadable("transient I/O error")
+
+        preferences.readBackOverride = .uniform(24)                       // ignored outright
+        XCTAssertEqual(try coordinator.apply(.osDefault), .noEffect(expected: .unset, actual: .uniform(24)))
+        XCTAssertEqual(backups.quarantineCount, 0)
+
+        let half = SpacingSettings(spacing: .absent, selectionPadding: .integer(24))
+        preferences.readBackOverride = half                                // one key only
+        XCTAssertEqual(try coordinator.apply(.osDefault), .noEffect(expected: .unset, actual: half))
+        XCTAssertEqual(backups.quarantineCount, 0)
+        XCTAssertEqual(backups.clearCount, 0)
+    }
+
+    /// A file that does not decode is no way back whatever the write did.
+    func testAnUndecodableBackupIsSetAsideEvenWhenTheWayHomeDidNotTake() throws {
+        preferences.currentHost = .uniform(24)
+        backups.loadError = .undecodable("not JSON")
+        preferences.readBackOverride = .uniform(24)
+
+        XCTAssertEqual(try coordinator.apply(.osDefault), .noEffect(expected: .unset, actual: .uniform(24)))
+        XCTAssertEqual(backups.quarantineCount, 1)
+    }
+
     /// A damaged record must survive an action that wrote nothing — including a
     /// read failure that was only transient.
     func testAnUnreadableBackupIsUntouchedWhenNothingIsWritten() throws {
@@ -203,8 +231,9 @@ final class SpacingCoordinatorTests: XCTestCase {
 
     // MARK: a write that fails, or changes nothing
 
-    /// The defect this started from: the record named the target, the Mac stayed
-    /// on 8, and Undo refused the user's own 8 as somebody else's change.
+    /// When macOS REPORTS that a change was not saved. (A save that fails without
+    /// a report is invisible at write time — ADR-0001 §2, known limit — and no
+    /// test here pretends otherwise: the stub's reads are truthful.)
     func testAfterAReportedFailureTheRecordIsAsItWasAndUndoStillWorks() throws {
         XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
         let before = backups.record
@@ -336,6 +365,16 @@ final class SpacingCoordinatorTests: XCTestCase {
                        "Already the macOS default. Nothing was changed.")
 
         // The sentences a review read aloud and found garbled.
+        // A write that took for one key only: nothing is "still" anything, and
+        // half of what is there is this app's — it used to say "the spacing is
+        // still a setting made outside this app".
+        let oneKeyOnly = SpacingSettings(spacing: .integer(8), selectionPadding: .absent)
+        XCTAssertEqual(OutcomeMessage.apply(.noEffect(expected: .uniform(8), actual: oneKeyOnly)),
+                       "macOS did not accept the change — only part of it took effect. "
+                       + "This version of macOS may ignore the setting.")
+        XCTAssertEqual(OutcomeMessage.apply(.noEffect(expected: .uniform(8), actual: .uniform(4))),
+                       "macOS did not accept the change — the spacing is still 4. "
+                       + "This version of macOS may ignore the setting.")
         XCTAssertEqual(OutcomeMessage.apply(.noEffect(expected: .uniform(4), actual: .unset), everyHost: six),
                        "macOS did not accept the change — this Mac still has no spacing of its own, "
                        + "so the one set for every Mac outside this app applies (6). "

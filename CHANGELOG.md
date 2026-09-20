@@ -8,11 +8,19 @@ Semantic Versioning.
 
 ### Fixed
 
-- **After a change macOS reported it could not save, "Undo my changes" refused to
-  undo your earlier one.** The app records the new spacing before it writes. When
-  the save failed the Mac stayed on your earlier spacing, which the record no
-  longer mentioned, and the next Undo read it as someone else's change and
-  declined. The record is now put back as it was when a change fails.
+- **If macOS reports that a change could not be saved, the saved record is put
+  back as it was.** The app records the new spacing before it writes, and used to
+  leave that record in place when the write failed: the Mac stayed on your
+  earlier spacing, the record no longer mentioned it, and Undo declined it as
+  someone else's change. (A save that fails *without* a report cannot be seen at
+  all — see Limits in the README.)
+- **A damaged saved original was set aside even when returning to the macOS
+  default did not work.** If macOS ignored that change, the app's spacing stayed
+  in effect while the file that might have undone it was moved away. It is now
+  moved only once the Mac is back at the default.
+- A change that took effect for only one of the two settings was described as
+  "still a setting made outside this app". It now says only part of it took
+  effect.
 - **A change that did nothing could make Undo remove someone else's setting.**
   When macOS ignored a change made over a value that had been set outside the
   app, the app recorded that value as its own. If nothing changed, the record now

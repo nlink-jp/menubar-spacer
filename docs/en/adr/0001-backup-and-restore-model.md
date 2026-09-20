@@ -62,8 +62,8 @@ outsider's value: the mix is recorded as observed.
 **Known limit: a change macOS accepts and then fails to save.** Measured on
 macOS 27.0 (2026-09-21):
 
-- With a preference file made unwritable, `CFPreferencesSynchronize` still
-  returned **true**, and the preferences API — in the writing process and in new
+- With a throwaway preference file made unwritable, `CFPreferencesSynchronize`
+  still returned **true**, and the preferences API — in the writing process and in new
   ones — answered with the unsaved value for between fifteen seconds and a
   minute, then went back to the old value without a word.
 - The file cannot be asked instead. For the real domain
@@ -74,14 +74,25 @@ macOS 27.0 (2026-09-21):
 
 So at the moment of writing, neither source says whether the change was saved,
 and the read-back (§12) goes through the API: it sees a change macOS rejects or
-ignores, and it cannot see this one. In that case the window reports success,
-macOS reverts within a minute, and Undo may then refuse the Mac's real value as
-someone else's. The way home still works — "macOS default" deletes both keys,
-and the README gives the two `defaults` commands — and the cause is a Mac that
-cannot save preferences for any app. Closing it would mean holding every change
-"unconfirmed" until the file and the API agree (seconds for a success, up to a
-minute for this failure); that wait on every change was judged worse than the
-limit.
+ignores, and it cannot see this one. On a Mac in that state the window reports
+success and macOS reverts within a minute. What follows depends on the click:
+
+- After an *apply*, the record names a spacing the Mac never got, and Undo may
+  refuse the Mac's real value as someone else's.
+- After an *Undo* — or an apply whose target is the original — the read-back
+  says the Mac is back where it started, so the record is discarded, and the
+  Mac then returns to this app's value with no record. The next apply records
+  that value as the original: **a hand-set original can be lost.** This is
+  v0.1.0's behaviour too; it is stated here because the first text of this
+  amendment mentioned only the refusal.
+
+The way home — "macOS default", or the two `defaults` commands in the README —
+works once the Mac can save preferences again; until then nothing it is asked to
+change is kept, for any app. Closing the limit would mean holding every change
+"unconfirmed", and every discard back, until the file and the API agree (seconds
+for a success, up to a minute for this failure); that wait on every change was
+judged worse than the limit. The probes and their output are in
+`evidence/2026-09-21-preference-save/`.
 
 Both fields of `BackupRecord` hold what was actually read:
 
@@ -112,7 +123,10 @@ case where even that is impossible, instead of writing something else.
 ### 5. The way back is stored before the first write
 
 `apply` saves the record and only then calls the writer. A write that fails — or
-an app that dies between the two — leaves a usable way back. The guarantee is
+an app that dies between the two — never loses the original. (On a second or
+later apply, a crash in that window leaves a record that names the new target
+while the Mac holds the earlier value, so Undo refuses it until any spacing is
+applied again; two fields cannot cover this window and the one in §9 both.) The guarantee is
 against a crash or a failed write, not against power loss: the file is written
 atomically (temp file plus rename) but not fsynced.
 
@@ -168,8 +182,10 @@ Applying **OS default** is still allowed: it needs no record and cannot make
 recovery worse.
 
 A damaged file is **moved aside** (`backup.json.damaged-<date>`), never deleted,
-and only after a write actually happened. The read may have failed for a
-transient reason, and its bytes may still be readable by a person.
+and only after a write that took the Mac home. The read may have failed for a
+transient reason, and its bytes may still be readable by a person. (v0.1.0 moved
+it after any write, including one the OS ignored or applied to one key only —
+leaving this app's value in effect with the file that might undo it set aside.)
 
 **Amended 2026-09-21: two kinds of "cannot be read", and one exception.** The
 store reported both as `unreadable`. They are not the same fact. A file that

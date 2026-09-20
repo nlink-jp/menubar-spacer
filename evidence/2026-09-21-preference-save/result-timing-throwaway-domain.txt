@@ -1,0 +1,19 @@
+=== A. a normal write (file writable): how soon does the disk show it?
+file: ByHost/jp.nlink.menubar-spacer.cfprobe.<host uuid>.plist  before: api=<absent> disk=<no file>
+wrote 8: synchronize=true
+  +    0 ms  api says 8   disk says 8
+  +   56 ms  api says 8   disk says 8
+  +  262 ms  api says 8   disk says 8
+  +  766 ms  api says 8   disk says 8
+  + 1771 ms  api says 8   disk says 8
+  + 3775 ms  api says 8   disk says 8
+=== B. the file made unwritable, then write 4
+file: ByHost/jp.nlink.menubar-spacer.cfprobe.<host uuid>.plist  before: api=8 disk=8
+wrote 4: synchronize=true
+  +    0 ms  api says 4   disk says 8
+  +   55 ms  api says 4   disk says 8
+  +  260 ms  api says 4   disk says 8
+  +  765 ms  api says 4   disk says 8
+  + 1770 ms  api says 4   disk says 8
+  + 3773 ms  api says 4   disk says 8
+  defaults(1) right after: 8

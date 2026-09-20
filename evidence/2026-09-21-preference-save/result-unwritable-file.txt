@@ -1,0 +1,28 @@
+== 1. a normal write
+write 8: synchronize=true same-process read=8
+   file: ByHost/jp.nlink.menubar-spacer.cfprobe.<host uuid>.plist
+   on disk: {   "Probe" => 8 } 
+== 2. make that ONE file immutable, then write 4 the way the app does
+   flags: uchg
+setMultiple 4: synchronize=true same-process read=4
+write 4: synchronize=true same-process read=4
+  1.5 s later, same process, after another synchronize: read=4
+   on disk now: {   "Probe" => 8 } 
+== 3. what NEW processes read, over time
+   + 0s new process: synchronize=true read=4
+   + 2s new process: synchronize=true read=4
+   + 5s new process: synchronize=true read=4
+   +15s new process: synchronize=true read=4
+   defaults(1): 8
+   on disk still: {   "Probe" => 8 } 
+== 4. one more look, ~1 min after the unsaved write
+   probe: new process: synchronize=true read=8
+   defaults(1): 8
+   on disk: {   "Probe" => 8 } 
+== 5. make the file writable again: does the pending value reach the disk?
+   probe: new process: synchronize=true read=8
+   on disk: {   "Probe" => 8 } 
+== 6. clean up the throwaway domain
+delete: synchronize=true read=<absent>
+   file after delete: 42 bytes
+{ } 

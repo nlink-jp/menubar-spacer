@@ -20,6 +20,10 @@ make test        # the swift suite (hardware tests skip) + the coordinator guard
 # The only tests that touch the real preference domain. They refuse to run
 # unless both keys are absent, and delete both keys in teardown.
 MENUBAR_SPACER_HARDWARE_TEST=1 swift test --filter HardwareEndToEndTests
+# On a Mac whose keys are set: sets the two values aside, runs the above, puts
+# them back on every exit path and verifies it. RELEASE GATE — run it on the
+# commit being tagged; it is what caught the plist read-back before release.
+scripts/hardware-test-guarded.sh
 make run         # swift run (debug)
 make build-app   # signed .app into dist/
 make package     # notarized + stapled + zipped
@@ -123,11 +127,15 @@ the output location and the signing.
   the value that was asked for); when the read-back equals the state before the
   write, the record is put back exactly, so a value someone else set is never
   adopted as ours; otherwise it records what was read. A restore stores no
-  intention, so a failed one leaves its record alone.
+  intention, so a failed one leaves its record alone. The damaged-record path
+  follows the same order: the file is set aside only after a write that took
+  the Mac home (or when it does not decode at all).
 - **Known limit — a change macOS accepts and then fails to save is invisible at
   write time.** Measured on macOS 27.0: with the preference file unwritable,
   `CFPreferencesSynchronize` returns **true** and the API answers with the
-  unsaved value, in new processes too, for 15 s to a minute. The file cannot be
+  unsaved value, in new processes too, for 15 s to a minute — so on such a Mac
+  an apply is reported as made, and an Undo as done (its record discarded; a
+  hand-set original can be lost). The file cannot be
   asked instead: for the real global ByHost domain macOS writes a *successful*
   change 4–8 s later (a throwaway domain showed 0 ms — that measurement did not
   transfer, and the hardware tests caught the draft built on it). Do not add
@@ -225,5 +233,7 @@ the guard is the org's standard for every Swift GUI app here
 
 - RFP: `docs/ja/menubar-spacer-rfp.ja.md` (`docs/en/menubar-spacer-rfp.md`)
 - Phase 1 results: `docs/ja/phase1-results.ja.md` (`docs/en/phase1-results.md`)
-- Evidence for every measured claim: `evidence/phase1-hardware-checks.json`, and
-  the spacing experiment in the `menu-bar-feasibility` study that preceded it.
+- Evidence for every measured claim: `evidence/phase1-hardware-checks.json`, the
+  spacing experiment in the `menu-bar-feasibility` study that preceded it, and
+  `evidence/2026-09-21-preference-save/` (probes and output for what
+  CFPreferences and the plist report after a write).
