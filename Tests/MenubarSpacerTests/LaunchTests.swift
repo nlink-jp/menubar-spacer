@@ -30,6 +30,7 @@ final class OutcomeMessageTests: XCTestCase {
             OutcomeMessage.restore(.unrestorableOriginal(.unset)),
             OutcomeMessage.restore(.noEffect(expected: .unset, actual: settings)),
             OutcomeMessage.failure(BackupStoreError.unreadable("x")),
+            OutcomeMessage.failure(BackupStoreError.undecodable("x")),
             OutcomeMessage.failure(BackupStoreError.lockFailed("x")),
             OutcomeMessage.failure(SpacingWriteError.synchronizationFailed(actual: .unset)),
             OutcomeMessage.failure(SpacingWriteError.unrestorableValue(.spacing)),
@@ -80,6 +81,7 @@ final class OutcomeMessageTests: XCTestCase {
                         OutcomeMessage.restore(.unusableBackup),
                         OutcomeMessage.restore(.unrestorableOriginal(.unset)),
                         OutcomeMessage.failure(BackupStoreError.unreadable("x")),
+                        OutcomeMessage.failure(BackupStoreError.undecodable("x")),
                         OutcomeMessage.failure(SpacingWriteError.unrestorableValue(.spacing))] {
             XCTAssertTrue(message.lowercased().contains("nothing was changed"), message)
         }
@@ -88,7 +90,8 @@ final class OutcomeMessageTests: XCTestCase {
     func testTheEscapeHatchIsOfferedWheneverTheRecordIsUnusable() {
         for message in [OutcomeMessage.restore(.unusableBackup),
                         OutcomeMessage.restore(.unrestorableOriginal(.unset)),
-                        OutcomeMessage.failure(BackupStoreError.unreadable("x"))] {
+                        OutcomeMessage.failure(BackupStoreError.unreadable("x")),
+                        OutcomeMessage.failure(BackupStoreError.undecodable("x"))] {
             XCTAssertTrue(message.contains("macOS default"), message)
         }
     }

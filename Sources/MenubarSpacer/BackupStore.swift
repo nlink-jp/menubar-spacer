@@ -22,8 +22,12 @@ protocol BackupStoring {
 }
 
 enum BackupStoreError: Error, Equatable {
-    /// A record file exists but is not readable as one.
+    /// A record file exists and could not be read. The cause may be transient,
+    /// so nothing is decided about the file on the strength of this.
     case unreadable(String)
+    /// The file was read, and what it holds is not a record. Reading it again
+    /// returns the same bytes: this one does not get better by waiting.
+    case undecodable(String)
     case lockFailed(String)
 }
 
@@ -53,7 +57,7 @@ struct FileBackupStore: BackupStoring {
         do {
             return try JSONDecoder().decode(BackupRecord.self, from: data)
         } catch {
-            throw BackupStoreError.unreadable(String(describing: error))
+            throw BackupStoreError.undecodable(String(describing: error))
         }
     }
 

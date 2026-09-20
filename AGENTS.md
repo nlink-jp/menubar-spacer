@@ -4,16 +4,16 @@ A non-resident macOS app that changes menu bar icon spacing through two
 undocumented global preferences and restores the prior state exactly.
 Swift / SwiftUI + AppKit, Swift Package Manager, macOS 27+, Apple Silicon.
 
-**Phase 1 complete.** The three hardware questions are answered
-(`docs/en/phase1-results.md`), and the preference layer, the backup layer and the
+**Released.** The three hardware questions are answered
+(`docs/en/phase1-results.md`); the preference layer, the backup layer and the
 apply/restore coordinator are implemented and tested — including against the real
-preference domain. Phase 2 is the UI: nothing in the shipped app calls the
-coordinator yet, so launching the app still writes nothing.
+preference domain — and the window drives them: choosing a row and pressing Apply
+writes, "Undo my changes" restores.
 
 ## Build and test
 
 ```sh
-make test        # 94 swift cases (hardware tests skip) + 20 coordinator guards
+make test        # the swift suite (hardware tests skip) + the coordinator guards
                  # + scripts/check-docs.py: links resolve, no withdrawn
                  #   mechanism reappears in the code or the documents
 
@@ -50,6 +50,14 @@ the output location and the signing.
 - `Sources/MenubarSpacer/SpacingCoordinator.swift` — apply, restore and the
   state the UI displays. Owns the ordering rules below.
 - `Sources/MenubarSpacer/{App,ContentView}.swift` — the window shell.
+- `Sources/MenubarSpacer/Launch.swift` — the single-instance guard.
+- `Sources/MenubarSpacer/SpacingViewModel.swift` — what the window binds to: the
+  selection, the state read from the coordinator, and the message of the last
+  outcome.
+- `Sources/MenubarSpacer/OutcomeMessage.swift` — every sentence the app says
+  about an apply, a restore or a failure. A sentence here is a promise about
+  behaviour: the one for an unreadable record said the way home "clears it" in a
+  state where it did not.
 - `Tests/MenubarSpacerTests/` — plan, preset, restore-decision, coordinator and
   file-store cases, plus the opt-in hardware tests.
 - `Sources/MenubarSpacer/SpacingSample.swift` — the in-window sample: measured
@@ -103,7 +111,23 @@ the output location and the signing.
   would destroy the only record of what this Mac held beforehand. Returning to
   the OS default stays available: it needs no record and cannot make recovery
   worse. The damaged file is moved aside, never deleted, and only after a write
-  actually happened.
+  actually happened — with one exception. `BackupStoreError` tells a file that
+  could not be *read* (`unreadable`: may read next time, left alone) from one
+  that was read and does not *decode* (`undecodable`: the same bytes forever).
+  The second is moved aside when the user takes the way home even if nothing is
+  written; otherwise, with both keys already unset, nothing ever moves it and
+  every value preset refuses for good (ADR-0001 §11, amended).
+- **Every write settles the record, whichever way it leaves.** The record is
+  saved for the target before the first mutation and must be corrected from
+  observation afterwards. `SpacingCoordinator.write` is the only caller of
+  `preferences.apply`, and it settles on the error path too: a write that threw
+  used to leave the record claiming a state the Mac never reached, and the next
+  Undo refused the user's own change as an outsider's (ADR-0001 §2, amended).
+- **What is in effect is not what this host holds.** `SpacingState.effective`
+  overlays the current-host keys on the every-host ones, which is where
+  `defaults write -g` without `-currentHost` puts a value. The window describes
+  and marks `effective`; while it differs from `currentHost` it says so, because
+  "macOS default" then returns to that value, not to Apple's.
 - **Requesting no TCC permission is a requirement, not an accident.** Do not add
   Accessibility or any other grant without a deliberate scope decision.
 - Docs in sync: `README.md` and `README.ja.md` in the same commit.

@@ -48,7 +48,10 @@ final class SpacingCoordinatorTests: XCTestCase {
     func testTheBackupIsStoredBeforeTheFirstWrite() throws {
         preferences.writeError = .synchronizationFailed(actual: .unset)
         XCTAssertThrowsError(try coordinator.apply(.wide))
-        XCTAssertEqual(backups.record?.original, .unset)
+        // The order is what this test is about, and the journal holds it. The
+        // record itself used to be left behind as the evidence — claiming
+        // `wide` was applied on a Mac still at its original — and is now
+        // corrected on the way out (testAFailedFirstWriteLeavesNoRecordBehind).
         XCTAssertEqual(backups.journal.firstIndex(of: "save"),
                        backups.journal.firstIndex(of: "write").map { $0 - 1 })
     }
@@ -171,6 +174,93 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertEqual(backups.quarantineCount, 0)
         XCTAssertEqual(backups.clearCount, 0)
         XCTAssertTrue(preferences.appliedOperations.isEmpty)
+    }
+
+    /// The read succeeded and the bytes are not a record: no later read will do
+    /// better. Left in place the file refuses every value preset for good, and
+    /// here no write follows to move it aside — so the way home does, even
+    /// though it writes nothing. (A file that merely could not be read is the
+    /// test above, and is still left alone.)
+    func testARecordNoRetryCanReadIsSetAsideOnTheWayHome() throws {
+        backups.loadError = .undecodable("not JSON")
+
+        XCTAssertEqual(try coordinator.apply(.osDefault), .alreadyApplied(.unset))
+        XCTAssertEqual(backups.quarantineCount, 1)
+        XCTAssertEqual(backups.clearCount, 0, "moved aside, never deleted")
+        XCTAssertTrue(preferences.appliedOperations.isEmpty)
+
+        // The dead end this closes: value presets work again, with a way back.
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+    }
+
+    func testAnUndecodableBackupStillBlocksAValuePreset() {
+        backups.loadError = .undecodable("not JSON")
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertTrue(preferences.appliedOperations.isEmpty)
+        XCTAssertEqual(backups.quarantineCount, 0)
+    }
+
+    // MARK: a write that fails
+
+    /// The record is saved for the target before the write, and used to be
+    /// corrected only when the write returned. A flush that failed left it
+    /// claiming a state the Mac never reached, and the next Undo then refused
+    /// the user's own earlier change as somebody else's.
+    func testAFailedWriteLeavesARecordThatMatchesTheMac() throws {
+        XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+
+        preferences.writeError = .synchronizationFailed(actual: .uniform(8))
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertEqual(preferences.currentHost, .uniform(8), "the stub's failed write changes nothing")
+        XCTAssertEqual(backups.record?.applied, .uniform(8), "the record describes the Mac, not the attempt")
+        XCTAssertEqual(backups.record?.original, .unset)
+
+        preferences.writeError = nil
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+    }
+
+    func testAFailedFirstWriteLeavesNoRecordBehind() throws {
+        preferences.writeError = .synchronizationFailed(actual: .unset)
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertNil(backups.record, "nothing of ours is in effect, so there is nothing to undo")
+    }
+
+    func testAFailedRestoreWriteCanBeRetried() throws {
+        XCTAssertEqual(try coordinator.apply(.wide), .applied(SpacingPreset.wide.settings))
+
+        preferences.writeError = .synchronizationFailed(actual: SpacingPreset.wide.settings)
+        XCTAssertThrowsError(try coordinator.restore())
+        XCTAssertEqual(backups.record?.applied, SpacingPreset.wide.settings)
+
+        preferences.writeError = nil
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+    }
+
+    // MARK: what is in effect
+
+    func testWhatIsInEffectFallsBackToTheEveryHostValue() {
+        preferences.anyHost = .uniform(6)
+        let state = coordinator.state()
+        XCTAssertEqual(state.currentHost, .unset)
+        XCTAssertEqual(state.effective, .uniform(6))
+        XCTAssertTrue(state.inheritsFromEveryHost)
+        XCTAssertNotNil(SpacingDescription.everyHostNote(state))
+    }
+
+    func testThisHostsValueWinsOverTheEveryHostValue() throws {
+        preferences.anyHost = .uniform(6)
+        _ = try coordinator.apply(.minimum)
+        let state = coordinator.state()
+        XCTAssertEqual(state.effective, .uniform(4))
+        XCTAssertFalse(state.inheritsFromEveryHost)
+        XCTAssertNil(SpacingDescription.everyHostNote(state))
+    }
+
+    func testNothingIsSaidWhenNoEveryHostValueExists() {
+        let state = coordinator.state()
+        XCTAssertEqual(state.effective, .unset)
+        XCTAssertNil(SpacingDescription.everyHostNote(state))
     }
 
     // MARK: restore
@@ -320,8 +410,8 @@ final class FileBackupStoreTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try Data("not json".utf8).write(to: store.url)
         XCTAssertThrowsError(try store.load()) { error in
-            guard case .unreadable = error as? BackupStoreError else {
-                return XCTFail("expected .unreadable, got \(error)")
+            guard case .undecodable = error as? BackupStoreError else {
+                return XCTFail("expected .undecodable, got \(error)")
             }
         }
     }

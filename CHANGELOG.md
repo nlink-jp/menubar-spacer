@@ -4,6 +4,42 @@ All notable changes to menubar-spacer are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- **After a change that failed to save, "Undo my changes" refused to undo your
+  earlier one.** The app records the target before it writes and corrects the
+  record afterwards — but only did so when the write returned normally. When
+  macOS would not save the change, the record went on describing a spacing the
+  Mac never had, and the next Undo read that as someone else's change and
+  declined. The record is now corrected whichever way the write ends. Restore
+  had the same gap.
+- **A saved original that cannot be decoded no longer locks the app.** With the
+  spacing already at the macOS default, choosing the default wrote nothing, so
+  the unusable file was never moved aside: every other spacing refused from then
+  on, Undo could not use the file either, and the message said that choice would
+  clear it. It is now moved aside (never deleted) when you choose the default. A
+  file that merely could not be read is still left alone — that may pass — and
+  its message no longer promises a clearing.
+- **A spacing set for every Mac was invisible.** `defaults write -g
+  NSStatusItemSpacing …` without `-currentHost` — the widely copied recipe — sets
+  a value this app does not write but the menu bar does use. The window called
+  that "the macOS default" and marked the default row "in effect". It now shows
+  the spacing actually in effect and says where it comes from, because choosing
+  "macOS default" then returns to that value, not to Apple's.
+
+### Documentation
+
+- The README said uninstalling takes the saved original with it. It does not:
+  the record stays in `~/Library/Application Support/jp.nlink.menubar-spacer/`
+  through a Trash or a `brew uninstall --zap`, so reinstalling brings Undo back.
+- "Six icons occupy 186 / 210 / 258 / 306 px" were the widths of the photographs'
+  crops, which add a 12 px margin. The icons occupy 174 / 198 / 246 / 294 px;
+  the percentages are corrected with them.
+- `AGENTS.md` still described the app as unreleased with no UI wired. The bundle's
+  copyright line said "All rights reserved"; the licence is MIT.
+
 ## [0.1.0] - 2026-09-16
 
 ### Added

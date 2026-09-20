@@ -37,6 +37,16 @@ deletion, taking the same code path as restore.
 
 ### 2. The record is captured from observation, never from intention
 
+**Amended 2026-09-21: on the way out through an error too.** The record has to
+exist before the first mutation, so it is first saved for the *target* — an
+intention — and corrected from observation when the write returns. The first
+implementation corrected it only on a normal return. A write that threw (a
+failed flush) left the record claiming a state the Mac never reached; the next
+Undo compared that claim with the live keys, found them different, and refused
+the user's own earlier change as an outsider's. Every write now goes through
+one function that settles the record from what the Mac holds, whichever way it
+leaves. Restore had the same gap and takes the same path.
+
 Both fields of `BackupRecord` hold what was actually read:
 
 - `original` is read immediately before the first apply.
@@ -124,6 +134,18 @@ recovery worse.
 A damaged file is **moved aside** (`backup.json.damaged-<date>`), never deleted,
 and only after a write actually happened. The read may have failed for a
 transient reason, and its bytes may still be readable by a person.
+
+**Amended 2026-09-21: two kinds of "cannot be read", and one exception.** The
+store reported both as `unreadable`. They are not the same fact. A file that
+could not be *read* may read next time, and the rule above is for it. A file
+that was read and does not *decode* (`undecodable`) holds the same bytes on
+every later read. For that one, the rule produced a dead end: with both keys
+already unset, choosing OS default writes nothing, so nothing ever moved the
+file aside; every value preset went on refusing, Undo could not use the file
+either, and the message said this very choice "clears it". So an undecodable
+file is moved aside when the user takes the way home even if nothing is
+written. The unreadable case is unchanged, and its message no longer promises
+a clearing that a transient failure does not get.
 
 ### 12. Every write is verified by reading it back, and only differing keys are written
 

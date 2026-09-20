@@ -61,9 +61,14 @@ enum OutcomeMessage {
 
     static func failure(_ error: Error) -> String {
         switch error {
-        case BackupStoreError.unreadable:
+        case BackupStoreError.undecodable:
             return "The saved original cannot be read, so nothing was changed. "
                 + "Choosing the macOS default still works, and clears it."
+        case BackupStoreError.unreadable:
+            // Not "and clears it": a read that failed may succeed next time, and
+            // the file is left alone until a write has actually happened.
+            return "The saved original could not be read just now, so nothing was "
+                + "changed. Try again; choosing the macOS default still works."
         case BackupStoreError.lockFailed:
             return "Another copy of this app is busy changing the spacing. "
                 + "Try again in a moment."
