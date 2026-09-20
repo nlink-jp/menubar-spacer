@@ -457,7 +457,7 @@ final class SpacingCoordinatorTests: XCTestCase {
         preferences.anyHost = .uniform(6)
         _ = try coordinator.apply(.minimum)
         let note = try XCTUnwrap(SpacingDescription.everyHostNote(coordinator.state()))
-        XCTAssertTrue(note.contains("6"), note)
+        XCTAssertTrue(note.hasPrefix("A spacing of 6 is also set for every Mac"), note)
         XCTAssertTrue(note.contains("not to Apple's"), note)
     }
 

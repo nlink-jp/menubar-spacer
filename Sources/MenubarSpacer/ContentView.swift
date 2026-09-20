@@ -85,8 +85,11 @@ enum SpacingDescription {
         }
         // Shown while this Mac's own setting hides it, too: this is the moment
         // "macOS default" is about to mean something else.
-        return "A spacing (\(spacing(state.anyHost))) is also set for every Mac you sign in to, "
-            + "outside this app. “macOS default” here returns to that value, not to Apple's."
+        // "A spacing (set to 6) is also set…" is what this read as until it was
+        // drawn and looked at: `spacing(_:)` is a predicate phrase, not a value.
+        let which = state.anyHost.uniformValue.map { "A spacing of \($0)" } ?? "A spacing"
+        return "\(which) is also set for every Mac you sign in to, outside this app. "
+            + "“macOS default” here returns to that value, not to Apple's."
     }
 
     static func backup(_ status: BackupStatus?) -> String {
