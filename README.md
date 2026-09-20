@@ -50,7 +50,10 @@ icons side by side occupy 174px at Minimum against 246px at the default — see
   AppKit test app; multiple displays and overflow layouts have not been checked.
 - **These preferences are undocumented.** Apple does not support them, and a
   macOS update may change or ignore them. The app reads the values back after
-  writing and tells you when they did not take effect.
+  writing and tells you when they did not take effect. What it cannot tell is a
+  Mac that cannot save its preferences at all (a full disk, a locked preferences
+  file): macOS then reports success and goes back to the old spacing within a
+  minute.
 - The two keys are always changed together; their individual effects are unknown.
 - Settings apply to the current user on the current Mac only.
 

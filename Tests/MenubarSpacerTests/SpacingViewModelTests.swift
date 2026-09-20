@@ -7,8 +7,7 @@ final class SpacingViewModelTests: XCTestCase {
     private var backups: StubBackupStore!
     private func makeModel() -> SpacingViewModel {
         SpacingViewModel(coordinator: SpacingCoordinator(preferences: preferences, backups: backups,
-                                                         now: { Date(timeIntervalSince1970: 0) },
-                                                         trust: ProcessTrust()))
+                                                         now: { Date(timeIntervalSince1970: 0) }))
     }
 
     override func setUp() {
@@ -132,30 +131,23 @@ final class SpacingViewModelTests: XCTestCase {
                        OutcomeMessage.restore(.restored(.unset), everyHost: .uniform(6)))
     }
 
-    // MARK: after a save that failed
+    // MARK: a change macOS reports as not saved
 
-    func testAfterAFailedSaveTheWindowOffersNothingAndShowsNoPhantom() {
+    func testAfterAFailedChangeUndoIsStillOfferedForTheEarlierOne() {
         let model = makeModel()
         model.selection = .narrow
         model.apply()
-        XCTAssertEqual(model.state.currentHost, .uniform(8))
 
-        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
-        preferences.failureLands = true
+        preferences.writeError = .synchronizationFailed(actual: .uniform(8))
         model.selection = .minimum
         model.apply()
-
-        XCTAssertTrue(model.isInDoubt)
-        XCTAssertFalse(model.canUndo)
-        XCTAssertEqual(model.state.currentHost, .uniform(8),
-                       "the window must not display the value macOS reported and did not keep")
-        XCTAssertEqual(model.message, OutcomeMessage.failure(SpacingWriteError.processInDoubt))
-        XCTAssertFalse(model.message?.contains("try again") ?? true)
+        XCTAssertEqual(model.message,
+                       OutcomeMessage.failure(SpacingWriteError.synchronizationFailed(actual: .uniform(8))))
+        XCTAssertTrue(model.canUndo)
 
         preferences.writeError = nil
-        let writes = preferences.appliedOperations.count
-        model.apply()
         model.restore()
-        XCTAssertEqual(preferences.appliedOperations.count, writes, "nothing more is written from this window")
+        XCTAssertEqual(preferences.currentHost, .unset)
+        XCTAssertFalse(model.canUndo)
     }
 }

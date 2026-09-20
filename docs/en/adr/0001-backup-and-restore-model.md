@@ -37,65 +37,51 @@ deletion, taking the same code path as restore.
 
 ### 2. The record is captured from observation, never from intention
 
-**Amended 2026-09-21: while a write is in doubt, the record names both states.**
-The record has to exist before the first mutation, so it is first saved for the
-*target* — an intention — and corrected from the read-back when the write
-returns. A write that threw (a failed flush) skipped the correction and left the
-record naming only a state the Mac might never have reached: after a second
-change failed, the Mac was still on the first one, the record no longer
-mentioned it, and Undo refused the user's own change as an outsider's.
+**Amended 2026-09-21: what happens to the record when a write does not do what
+was asked.** The record has to exist before the first mutation, so it is first
+saved for the *target* — an intention — and corrected from the read-back when
+the write returns. v0.1.0 handled two cases badly.
 
-The first repair settled the record from a read made after the failure, and was
-withdrawn in review before release: `CFPreferencesSetMultiple` has already run
-when the flush fails, so the process can read back a value the disk never got. A
-record corrected from that read could drop the original on a failed restore, and
-could adopt an outsider's value as this app's own (against §10).
+*A write that threw skipped the correction.* The record went on naming the
+target, the Mac stayed on the user's earlier spacing, and Undo refused that
+spacing as someone else's change. Now, when macOS reports that the change was
+not saved, the record is put back as it was before the click — without reading
+anything, because a read made after a failed save can still return the value
+that was asked for. With no earlier record the new one stays: it is right if the
+write landed after all, and harmless if it did not (Undo finds the Mac already
+original and clears it). A restore stores no intention, so its record is simply
+left alone.
 
-So nothing read after a failure is believed — and that has two halves, because
-the failing call is not the only one that reads.
+*A write that changed nothing recorded what it saw.* Over a value someone else
+had set, that adopted their value as this app's own, and a later Undo removed it
+(against §10). Now: **if the read-back equals what was there before the write,
+the record goes back exactly as it was**; otherwise it records what was read.
+What remains is the narrow case of a write that lands on one key only, over an
+outsider's value: the mix is recorded as observed.
 
-*The record.* The pre-write record carries a third field,
-`replaced`: what this app's own earlier write had left, when that is what the
-write in progress replaces — never an outsider's value. If the write throws, the
-record stays exactly as written and explains either outcome; §10's test accepts
-`original`, `applied` or `replaced` per key. A write that returns is read back as
-before, and that correction clears `replaced`. Restore stores no intention
-first, so its record needed no change. The field is optional: an earlier record
-decodes without it, and an earlier version ignores it.
+**Known limit: a change macOS accepts and then fails to save.** Measured on
+macOS 27.0 (2026-09-21):
 
-*The process.* A second review of this amendment found the first half alone
-insufficient: the next click re-read the keys, believed the answer, and acted on
-it. A retried Undo read the original back from the process's own view, reported
-"already original" and dropped the record while the disk still held the app's
-value — no way back after a relaunch. A retried way home did the same, and the
-next process recorded the app's own value as the Mac's original. A second change
-recorded the first failure's phantom as the state it replaced. (The discard
-paths are v0.1.0's; the untrustworthy read is what made them fire.) So once a
-flush fails, `ProcessTrust` marks the process and `apply` and `restore` refuse
-with `processInDoubt` until the app is opened again; the window stops offering
-actions, keeps showing the last state it read before the failure, and says to
-quit and reopen — the sentence used to say "try again". The mark belongs to the
-process, not to one coordinator value, so a window rebuilt in the same process
-inherits it.
+- With a preference file made unwritable, `CFPreferencesSynchronize` still
+  returned **true**, and the preferences API — in the writing process and in new
+  ones — answered with the unsaved value for between fifteen seconds and a
+  minute, then went back to the old value without a word.
+- The file cannot be asked instead. For the real domain
+  (`~/Library/Preferences/ByHost/.GlobalPreferences.<host uuid>.plist`) macOS
+  wrote a *successful* change 4–8 s after `Synchronize` returned. (A throwaway
+  domain had shown it at 0 ms; a first draft of this amendment read the file on
+  that evidence, and the hardware tests failed every successful write.)
 
-How long macOS keeps reporting the unsaved value is not measured — nor whether
-a *new* process sees it, since reads are served by the preferences daemon and
-not by the file. Nothing here depends on the answer: no read settles the record,
-not even the next process's. (A third draft did settle it there, to stop
-`replaced` from vouching for a value indefinitely, and a third review showed the
-price: a next process that still read the phantom settled on the phantom, and
-Undo refused the user's own value once the daemon read the disk again.) So
-`replaced` stays until a later write has been read back. Until then a third
-party that sets a key to exactly that value is taken for us — §9's rule, with
-one more value in it, and the lesser harm by a distance.
-
-Known and left: `replaced` is recorded for both keys or neither, so after an
-outsider changes one key and the app's write over it half-lands in a failed
-flush, Undo can refuse over the app's own leftover value on the other key
-(choosing the macOS default still works). And an apply the OS ignores
-(`noEffect`) over an outsider's value records that value as observed, as v0.1.0
-did, so a later Undo removes it — the user had asked to replace it, but the
-sentence for `noEffect` does not mention the outsider.
+So at the moment of writing, neither source says whether the change was saved,
+and the read-back (§12) goes through the API: it sees a change macOS rejects or
+ignores, and it cannot see this one. In that case the window reports success,
+macOS reverts within a minute, and Undo may then refuse the Mac's real value as
+someone else's. The way home still works — "macOS default" deletes both keys,
+and the README gives the two `defaults` commands — and the cause is a Mac that
+cannot save preferences for any app. Closing it would mean holding every change
+"unconfirmed" until the file and the API agree (seconds for a success, up to a
+minute for this failure); that wait on every change was judged worse than the
+limit.
 
 Both fields of `BackupRecord` hold what was actually read:
 
@@ -156,8 +142,7 @@ one a moment out of date.
 ### 9. A state that is partly ours is ours to clean up
 
 `RestorePlanner.isExplainedByOurWrite` accepts any state in which each key holds
-either its original value, the last value we observed, or — only while a write
-is in doubt (§2, amended) — the value that write was replacing. That covers the state we
+either its original value or the last value we observed. That covers the state we
 left behind, a write the OS honoured for one key only, and a crash between the
 write and the record correction. Anything else is `changedExternally`. A third
 party that happens to set a key to precisely the value we wrote is
@@ -210,11 +195,22 @@ aside within one second.
 
 `SystemSpacingPreferences.apply` re-reads the scope and returns what it found;
 the coordinator compares it with the target and reports `noEffect` when they
-differ. `SpacingPlan.operations` emits the minimal set/delete list, so a no-op
+differ. (What this cannot see is recorded in §2, amended.) `SpacingPlan.operations` emits the minimal set/delete list, so a no-op
 apply touches nothing. The single-key write is covered by the hardware tests,
 which the measurement probe never exercised.
 
 ## Rejected alternatives
+
+**Guard against an unsaved write with more state.** Three drafts of the
+2026-09-21 amendment did: a record naming both the target and the value being
+replaced, a process that refused every action after a failed flush, a next
+process that settled the record. Each was blocked in review and none shipped.
+All three assumed `CFPreferencesSynchronize` returns false when a write is not
+saved. It returns true, so none of that machinery would ever have run.
+
+**Verify a write against the settings file.** The file is truthful, but for this
+domain it is written seconds after the change (§2, amended), so an immediate
+check fails every success — found by the hardware tests, before release.
 
 **Store the OS default as a number and restore that.** Requires believing 16 is
 "the" default, which the measurements do not support. Rejected as an assumption

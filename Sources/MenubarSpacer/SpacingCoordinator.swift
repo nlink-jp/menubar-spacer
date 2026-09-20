@@ -78,37 +78,6 @@ extension SpacingState {
     var hasEveryHostValue: Bool { anyHost != .unset }
 }
 
-/// Whether this process can still believe what it reads. A reference, so that
-/// every copy of the coordinator shares the one answer.
-///
-/// `CFPreferencesSetMultiple` has already changed the process's own view by the
-/// time the flush can fail, so after a failed flush a read may return a value
-/// the disk never got — for the rest of the process's life, as far as anyone
-/// has measured. Writing the record to survive that was half of the repair; the
-/// other half is this. The very next click re-read the keys, believed the
-/// answer, and acted on it: a retried Undo found "already original" and dropped
-/// the record while the disk still held the app's value, and a second change
-/// recorded the first failure's phantom as the state it replaced. So once a
-/// flush fails, this process reads and writes nothing more. A new process reads
-/// from disk, and the record it finds explains either outcome.
-final class ProcessTrust: @unchecked Sendable {
-    /// The process's own. A coordinator built later in the same process — a
-    /// window rebuilt by SwiftUI, say — must inherit the doubt, not start
-    /// believing again; tests pass their own so that a "relaunch" can forget.
-    static let shared = ProcessTrust()
-
-    private let lock = NSLock()
-    private var failed = false
-    var flushHasFailed: Bool {
-        lock.lock(); defer { lock.unlock() }
-        return failed
-    }
-    func recordFailedFlush() {
-        lock.lock(); defer { lock.unlock() }
-        failed = true
-    }
-}
-
 /// Applying and undoing, in the one order that is safe: the way back is stored
 /// before anything is written, every write is verified by reading it back, and
 /// the record is then corrected to describe what the Mac actually holds.
@@ -120,22 +89,6 @@ struct SpacingCoordinator {
     let preferences: SpacingPreferenceReading & SpacingPreferenceWriting
     let backups: BackupStoring
     var now: () -> Date = Date.init
-    var trust: ProcessTrust = .shared
-
-    /// True once a write in this process failed to flush: the window has to say
-    /// so and stop offering actions, because what it displays is a read too.
-    var isInDoubt: Bool { trust.flushHasFailed }
-
-    /// The only caller of `preferences.apply`. A failed flush is remembered
-    /// before the error leaves.
-    private func write(_ operations: [WriteOperation]) throws -> SpacingSettings {
-        do {
-            return try preferences.apply(operations)
-        } catch let error as SpacingWriteError {
-            if case .synchronizationFailed = error { trust.recordFailedFlush() }
-            throw error
-        }
-    }
 
     /// Display only, and deliberately lock-free: blocking the UI to render a
     /// status would be worse than rendering one a moment out of date.
@@ -154,8 +107,7 @@ struct SpacingCoordinator {
     }
 
     func apply(_ preset: SpacingPreset) throws -> ApplyOutcome {
-        guard !isInDoubt else { throw SpacingWriteError.processInDoubt }
-        return try backups.withExclusiveAccess { () throws -> ApplyOutcome in
+        try backups.withExclusiveAccess { () throws -> ApplyOutcome in
             let target = preset.settings
 
             var existing: BackupRecord?
@@ -201,29 +153,15 @@ struct SpacingCoordinator {
                 !RestorePlanner.isExplainedByOurWrite(current: current, record: $0)
             } ?? false
 
-            // The way back is stored before the first mutation, never after it —
-            // so it has to be written for a state the Mac is not in yet. It
-            // therefore names both states the Mac can be left in: the target,
-            // and what is being replaced when that is this app's own earlier
-            // write (never an outsider's: §10). If the write below throws, the
-            // record is left exactly like that. Nothing read after a failed
-            // flush can be trusted to say which of the two the Mac holds, and
-            // the first attempt at this — settling from such a read — could
-            // drop the record, and the original with it.
-            if !damaged {
-                let replaced = (existing != nil && !external) ? current : nil
-                try backups.save(BackupRecord(original: original, applied: target,
-                                              capturedAt: now(), replaced: replaced))
-            }
-
-            let actual = try write(operations)
-
+            let actual: SpacingSettings
             if damaged {
+                actual = try preferences.apply(operations)
                 // Only now, after a write this app actually performed, is the
                 // unreadable file moved aside — and moved, not deleted.
                 try backups.quarantine()
             } else {
-                try settle(original: original, actual: actual)
+                actual = try write(operations, from: current, record: existing,
+                                   original: original, storingFirst: target)
             }
 
             guard actual == target else {
@@ -235,8 +173,7 @@ struct SpacingCoordinator {
     }
 
     func restore() throws -> RestoreOutcome {
-        guard !isInDoubt else { throw SpacingWriteError.processInDoubt }
-        return try backups.withExclusiveAccess { () throws -> RestoreOutcome in
+        try backups.withExclusiveAccess { () throws -> RestoreOutcome in
             let record: BackupRecord?
             do {
                 record = try backups.load()
@@ -258,33 +195,60 @@ struct SpacingCoordinator {
                 return .alreadyOriginal
             case let .restore(operations):
                 guard let record else { return .nothingToRestore }
-                // A restore stores no intention first — the record it works
-                // from already explains both the state it leaves and the one
-                // it aims at — so a write that throws leaves it as it is, and
-                // pressing Restore again resumes.
-                let actual = try write(operations)
+                let actual = try write(operations, from: current, record: record,
+                                       original: record.original, storingFirst: nil)
                 guard actual == record.original else {
-                    // Keep the record describing the Mac, so pressing Restore
-                    // again resumes instead of blaming an outsider.
-                    try settle(original: record.original, actual: actual)
                     return .noEffect(expected: record.original, actual: actual)
                 }
-                discardRecord()
                 return .restored(actual)
             }
         }
     }
 
-    /// Makes the record describe what the Mac actually holds — never the target
-    /// that was asked for. Once the Mac is back at its original state the record
-    /// is dropped, so "there is a backup" keeps meaning "something of ours is in
-    /// effect".
-    private func settle(original: SpacingSettings, actual: SpacingSettings) throws {
+    /// Stores the way back, writes, and leaves the record describing what the
+    /// read-back found.
+    ///
+    /// `target` is what an apply is about to ask for; a restore passes nil,
+    /// because it has a record already and stores no intention.
+    private func write(_ operations: [WriteOperation], from current: SpacingSettings,
+                       record existing: BackupRecord?, original: SpacingSettings,
+                       storingFirst target: SpacingSettings?) throws -> SpacingSettings {
+        if let target {
+            // The way back is stored before the first mutation, never after it —
+            // so it is written for the target, and corrected below.
+            try backups.save(BackupRecord(original: original, applied: target, capturedAt: now()))
+        }
+
+        let actual: SpacingSettings
+        do {
+            actual = try preferences.apply(operations)
+        } catch {
+            // macOS says the change was not saved, so the record goes back to
+            // what it was — without reading anything: after a failed save a
+            // read can still return the value that was asked for. v0.1.0 left
+            // the record naming the target, and Undo then refused the user's
+            // own earlier change as somebody else's. With no earlier record the
+            // new one stays: it is right if the write landed after all, and
+            // harmless if it did not (Undo finds the Mac already original).
+            if target != nil, let existing { try? backups.save(existing) }
+            throw error
+        }
+
         if actual == original {
+            // Back where the Mac started: "there is a backup" keeps meaning
+            // "something of ours is in effect".
             discardRecord()
+        } else if actual == current {
+            // Nothing changed, so the record goes back exactly as it was.
+            // Recording `actual` instead would adopt a value someone else had
+            // set as this app's own, and a later Undo would remove it without a
+            // word (§10).
+            if target != nil, let existing { try backups.save(existing) }
         } else {
+            // What the Mac holds — never the target that was asked for.
             try backups.save(BackupRecord(original: original, applied: actual, capturedAt: now()))
         }
+        return actual
     }
 
     /// Best effort by design: a write that already succeeded must not be

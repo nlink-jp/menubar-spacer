@@ -117,29 +117,24 @@ the output location and the signing.
   The second is moved aside when the user takes the way home even if nothing is
   written; otherwise, with both keys already unset, nothing ever moves it and
   every value preset refuses for good (ADR-0001 §11, amended).
-- **Nothing read after a failed flush is believed — by the record, or by the
-  process.** `CFPreferencesSetMultiple` has run by the time the flush can fail,
-  so the process may read back a value the disk never got. *The record:* the
-  pre-write record names both states the Mac can be left in — `applied` (the
-  target) and `replaced` (this app's own earlier value, never an outsider's) —
-  and a write that throws leaves it exactly so; `isExplainedByOurWrite` accepts
-  either. *The process:* `ProcessTrust` marks it, `apply` and `restore` then
-  refuse with `processInDoubt`, and the window offers nothing and does not
-  refresh — because the NEXT click re-read the keys and believed them: a retried
-  Undo dropped the record, a retried way home made the next process record the
-  app's own value as the original, a second change recorded a phantom as
-  `replaced`. The mark is process-wide (`ProcessTrust.shared`; tests pass their
-  own). No read settles the record — not even the next process's, because the
-  preferences daemon may still serve the unsaved value: `replaced` stays until a
-  later write is read back. Three drafts did not ship: settling from the read
-  after the failure (review 1: lost the original), the record alone (review 2:
-  the next click believed the same read), and settling in the next process
-  (review 3: a phantom read there re-created the refusal). ADR-0001 §2, amended,
-  lists what is known and left. In tests a relaunch is `relaunch(disk:)`
-  — a NEW coordinator over the same stubs, with a new trust — and
-  `StubSpacingPreferences.failureLands` is the failure the OS actually produces;
-  a test that reuses the coordinator, or only knows "nothing changed", proves
-  nothing about either.
+- **After a write that did not do what was asked, the record goes back as it
+  was.** `SpacingCoordinator.write`: on a thrown error the earlier record is
+  restored *without reading anything* (a read after a failed save can return
+  the value that was asked for); when the read-back equals the state before the
+  write, the record is put back exactly, so a value someone else set is never
+  adopted as ours; otherwise it records what was read. A restore stores no
+  intention, so a failed one leaves its record alone.
+- **Known limit — a change macOS accepts and then fails to save is invisible at
+  write time.** Measured on macOS 27.0: with the preference file unwritable,
+  `CFPreferencesSynchronize` returns **true** and the API answers with the
+  unsaved value, in new processes too, for 15 s to a minute. The file cannot be
+  asked instead: for the real global ByHost domain macOS writes a *successful*
+  change 4–8 s later (a throwaway domain showed 0 ms — that measurement did not
+  transfer, and the hardware tests caught the draft built on it). Do not add
+  state for "a write in doubt" and do not read the plist to verify a write;
+  ADR-0001 §2 (amended) and its Rejected alternatives say why. Any measurement
+  about these keys is made on the real domain, under a guard that sets the
+  user's values aside and puts them back.
 - **What is in effect is not what this host holds.** `SpacingState.effective`
   overlays the current-host keys on the every-host ones, per key, which is where
   `defaults write -g` without `-currentHost` puts a value. The window describes
@@ -217,9 +212,8 @@ the guard is the org's standard for every Swift GUI app here
   obstruction; undoing over an unexplained state would be destruction.
 - **A state that is partly ours is ours to clean up.**
   `RestorePlanner.isExplainedByOurWrite` accepts any state whose keys each hold
-  the original, the last observed value, or — only while a write is in doubt —
-  the value that write was replacing; which covers a half-landed write, a crash
-  between the write and the record correction, and a flush that failed.
+  the original or the last observed value, which covers a half-landed write and
+  a crash between the write and the record correction.
 - **A write that does not take is `noEffect`, not success.** These keys are
   undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global

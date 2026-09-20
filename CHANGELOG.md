@@ -8,20 +8,15 @@ Semantic Versioning.
 
 ### Fixed
 
-- **After a change that failed to save, "Undo my changes" refused to undo your
-  earlier one.** The app records the target before it writes. When macOS would
-  not save the change, the Mac stayed on your earlier spacing, which the record
-  no longer mentioned, and the next Undo read it as someone else's change and
-  declined. The record now names both the new spacing and the one it replaces
-  until the write has been read back, so Undo recognises either. It is not
-  guessed from a read after the failure: macOS can report a value it did not
-  save.
-- **After a save that failed, the window stops.** It used to say "try again",
-  and trying again acted on that same unreliable reading: a second Undo could
-  conclude the Mac was already back to normal and discard the saved original
-  while your change was still in effect. The window now keeps showing what it
-  last knew, offers no further action, and asks you to quit and reopen the app —
-  which reads the real state and picks up the way back.
+- **After a change macOS reported it could not save, "Undo my changes" refused to
+  undo your earlier one.** The app records the new spacing before it writes. When
+  the save failed the Mac stayed on your earlier spacing, which the record no
+  longer mentioned, and the next Undo read it as someone else's change and
+  declined. The record is now put back as it was when a change fails.
+- **A change that did nothing could make Undo remove someone else's setting.**
+  When macOS ignored a change made over a value that had been set outside the
+  app, the app recorded that value as its own. If nothing changed, the record now
+  stays exactly as it was.
 - **A saved original that cannot be decoded no longer locks the app.** With the
   spacing already at the macOS default, choosing the default wrote nothing, so
   the unusable file was never moved aside: every other spacing refused from then
@@ -49,6 +44,8 @@ Semantic Versioning.
 
 ### Documentation
 
+- The README now says what the read-back cannot tell: a Mac that cannot save its
+  preferences at all reports success and reverts within a minute.
 - The README said uninstalling takes the saved original with it. It does not:
   the record stays in `~/Library/Application Support/jp.nlink.menubar-spacer/`
   through a Trash or a `brew uninstall --zap`, so reinstalling brings Undo back.

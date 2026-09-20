@@ -73,8 +73,13 @@ enum OutcomeMessage {
 
         /// What an apply replaced, when someone else had left it there.
         func replacing(_ settings: SpacingSettings) -> String {
-            settings == .unset
-                ? "after this Mac's own setting had been cleared outside this app"
+            if settings == .unset {
+                return "after this Mac's own setting had been cleared outside this app"
+            }
+            // `describe` already says "made outside this app" for a value that
+            // is not a plain number; saying it twice is what this used to do.
+            return settings.uniformValue == nil
+                ? "replacing a setting that was made outside this app"
                 : "replacing \(describe(settings)) that was set outside this app"
         }
 
@@ -117,12 +122,17 @@ enum OutcomeMessage {
             return "Already back to how it was."
         case .nothingToRestore:
             return "Nothing to undo — this app has not changed anything."
-        case let .refusedExternalChange(current, _):
+        case let .refusedExternalChange(current, original):
             if current == .unset {
-                // Advising "choose the macOS default" here would recommend the
+                // This case exists only when the saved original is NOT the
+                // default (otherwise the planner answers "already original"
+                // first). So there is still something to put back, and saying
+                // there was "nothing left to undo" — a first version did — hid
+                // it. Advising "choose the macOS default" would recommend the
                 // state the Mac is already in.
-                return "This Mac's setting was cleared outside this app, so there is nothing "
-                    + "of this app's left to undo. Nothing was changed."
+                return "This Mac's spacing was cleared outside this app, so nothing was changed. "
+                    + "What it had before this app (\(w.describe(original))) is still saved: "
+                    + "apply any spacing, then press Undo, to put that back."
             }
             return "The spacing was changed outside this app (now \(w.describe(current))). "
                 + "Undoing would throw that away, so nothing was changed. "
@@ -152,14 +162,8 @@ enum OutcomeMessage {
         case BackupStoreError.lockFailed:
             return "Another copy of this app is busy changing the spacing. "
                 + "Try again in a moment."
-        case SpacingWriteError.synchronizationFailed, SpacingWriteError.processInDoubt:
-            // Not "try again": after a save that failed, this window cannot tell
-            // what the Mac holds, and a second attempt acts on a read it should
-            // not believe. The first version of this sentence invited exactly
-            // that.
-            return "macOS would not save the change, so this window can no longer tell what "
-                + "your Mac holds. Quit menubar-spacer and open it again: your earlier "
-                + "spacing and the way back are kept."
+        case SpacingWriteError.synchronizationFailed:
+            return "macOS would not save the change. Nothing else was changed; try again."
         case SpacingWriteError.unrestorableValue:
             return "This Mac's earlier setting cannot be written back, so nothing was "
                 + "changed. You can still choose the macOS default."
