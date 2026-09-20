@@ -74,13 +74,28 @@ paths are v0.1.0's; the untrustworthy read is what made them fire.) So once a
 flush fails, `ProcessTrust` marks the process and `apply` and `restore` refuse
 with `processInDoubt` until the app is opened again; the window stops offering
 actions, keeps showing the last state it read before the failure, and says to
-quit and reopen — the sentence used to say "try again". A new process reads
-from disk. It settles a record that still names two states on the one it finds
-(`resolvingDoubt`), so `replaced` does not go on vouching for a value through
-relaunches and no-op applies, to be "undone" when an outsider later sets it.
+quit and reopen — the sentence used to say "try again". The mark belongs to the
+process, not to one coordinator value, so a window rebuilt in the same process
+inherits it.
 
-How long macOS keeps reporting the unsaved value is not measured. Nothing here
-depends on the answer.
+How long macOS keeps reporting the unsaved value is not measured — nor whether
+a *new* process sees it, since reads are served by the preferences daemon and
+not by the file. Nothing here depends on the answer: no read settles the record,
+not even the next process's. (A third draft did settle it there, to stop
+`replaced` from vouching for a value indefinitely, and a third review showed the
+price: a next process that still read the phantom settled on the phantom, and
+Undo refused the user's own value once the daemon read the disk again.) So
+`replaced` stays until a later write has been read back. Until then a third
+party that sets a key to exactly that value is taken for us — §9's rule, with
+one more value in it, and the lesser harm by a distance.
+
+Known and left: `replaced` is recorded for both keys or neither, so after an
+outsider changes one key and the app's write over it half-lands in a failed
+flush, Undo can refuse over the app's own leftover value on the other key
+(choosing the macOS default still works). And an apply the OS ignores
+(`noEffect`) over an outsider's value records that value as observed, as v0.1.0
+did, so a later Undo removes it — the user had asked to replace it, but the
+sentence for `noEffect` does not mention the outsider.
 
 Both fields of `BackupRecord` hold what was actually read:
 

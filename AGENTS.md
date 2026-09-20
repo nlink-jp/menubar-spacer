@@ -128,10 +128,15 @@ the output location and the signing.
   refresh — because the NEXT click re-read the keys and believed them: a retried
   Undo dropped the record, a retried way home made the next process record the
   app's own value as the original, a second change recorded a phantom as
-  `replaced`. A new process reads from disk and settles a two-state record on
-  what it finds (`resolvingDoubt`). Two earlier repairs were withdrawn in review
-  before release (ADR-0001 §2, amended). In tests a relaunch is `relaunch(disk:)`
-  — a NEW coordinator over the same stubs — and
+  `replaced`. The mark is process-wide (`ProcessTrust.shared`; tests pass their
+  own). No read settles the record — not even the next process's, because the
+  preferences daemon may still serve the unsaved value: `replaced` stays until a
+  later write is read back. Three drafts did not ship: settling from the read
+  after the failure (review 1: lost the original), the record alone (review 2:
+  the next click believed the same read), and settling in the next process
+  (review 3: a phantom read there re-created the refusal). ADR-0001 §2, amended,
+  lists what is known and left. In tests a relaunch is `relaunch(disk:)`
+  — a NEW coordinator over the same stubs, with a new trust — and
   `StubSpacingPreferences.failureLands` is the failure the OS actually produces;
   a test that reuses the coordinator, or only knows "nothing changed", proves
   nothing about either.

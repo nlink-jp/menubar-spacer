@@ -7,7 +7,8 @@ final class SpacingViewModelTests: XCTestCase {
     private var backups: StubBackupStore!
     private func makeModel() -> SpacingViewModel {
         SpacingViewModel(coordinator: SpacingCoordinator(preferences: preferences, backups: backups,
-                                                         now: { Date(timeIntervalSince1970: 0) }))
+                                                         now: { Date(timeIntervalSince1970: 0) },
+                                                         trust: ProcessTrust()))
     }
 
     override func setUp() {

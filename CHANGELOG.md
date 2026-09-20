@@ -40,6 +40,13 @@ Semantic Versioning.
   without a setting of its own — because "macOS default" then returns to that
   value, not to Apple's.
 
+### Changed
+
+- Release builds are linked against the current macOS SDK and `make
+  verify-release` checks it: since the Xcode 27 toolchain a plain build records
+  the deployment target instead, and macOS then draws the window with the
+  previous design. No published build was affected.
+
 ### Documentation
 
 - The README said uninstalling takes the saved original with it. It does not:

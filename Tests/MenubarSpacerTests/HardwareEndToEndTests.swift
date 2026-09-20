@@ -38,7 +38,8 @@ final class HardwareEndToEndTests: XCTestCase {
             .appendingPathComponent("menubar-spacer-e2e-" + UUID().uuidString, isDirectory: true)
         coordinator = SpacingCoordinator(
             preferences: preferences,
-            backups: FileBackupStore(url: directory.appendingPathComponent("backup.json"))
+            backups: FileBackupStore(url: directory.appendingPathComponent("backup.json")),
+            trust: ProcessTrust()   // one test's failed flush must not silence the next
         )
     }
 

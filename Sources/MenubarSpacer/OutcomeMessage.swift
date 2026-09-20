@@ -64,6 +64,20 @@ enum OutcomeMessage {
             return "Spacing set to \(describe(settings))"
         }
 
+        /// "the spacing is still 8" / "this Mac still has no spacing of its own…"
+        func still(_ settings: SpacingSettings) -> String {
+            settings == .unset && inherits(settings)
+                ? "this Mac still has " + describe(settings)
+                : "the spacing is still \(describe(settings))"
+        }
+
+        /// What an apply replaced, when someone else had left it there.
+        func replacing(_ settings: SpacingSettings) -> String {
+            settings == .unset
+                ? "after this Mac's own setting had been cleared outside this app"
+                : "replacing \(describe(settings)) that was set outside this app"
+        }
+
         func already(_ settings: SpacingSettings) -> String {
             settings == .unset && inherits(settings)
                 ? "This Mac already has " + describe(settings)
@@ -88,11 +102,10 @@ enum OutcomeMessage {
                 + "original that could not be read has been moved aside; you can choose any "
                 + "spacing again."
         case let .appliedOverExternalChange(settings, replaced):
-            return "\(w.nowReads(settings)), replacing \(w.describe(replaced)) that was set "
-                + "outside this app. \(relaunchNote)"
+            return "\(w.nowReads(settings)), \(w.replacing(replaced)). \(relaunchNote)"
         case let .noEffect(_, actual):
-            return "macOS did not accept the change — the spacing is still "
-                + "\(w.describe(actual)). This version of macOS may ignore the setting."
+            return "macOS did not accept the change — \(w.still(actual)). "
+                + "This version of macOS may ignore the setting."
         }
     }
 
@@ -105,6 +118,12 @@ enum OutcomeMessage {
         case .nothingToRestore:
             return "Nothing to undo — this app has not changed anything."
         case let .refusedExternalChange(current, _):
+            if current == .unset {
+                // Advising "choose the macOS default" here would recommend the
+                // state the Mac is already in.
+                return "This Mac's setting was cleared outside this app, so there is nothing "
+                    + "of this app's left to undo. Nothing was changed."
+            }
             return "The spacing was changed outside this app (now \(w.describe(current))). "
                 + "Undoing would throw that away, so nothing was changed. "
                 + "Choose the macOS default if you want to clear it."
@@ -115,8 +134,8 @@ enum OutcomeMessage {
             return "This Mac's earlier setting cannot be written back, so nothing was "
                 + "changed. You can still choose the macOS default."
         case let .noEffect(_, actual):
-            return "macOS did not accept the change — the spacing is still "
-                + "\(w.describe(actual)). This version of macOS may ignore the setting."
+            return "macOS did not accept the change — \(w.still(actual)). "
+                + "This version of macOS may ignore the setting."
         }
     }
 

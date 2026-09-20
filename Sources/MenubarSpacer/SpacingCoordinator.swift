@@ -78,13 +78,6 @@ extension SpacingState {
     var hasEveryHostValue: Bool { anyHost != .unset }
 }
 
-/// Applying and undoing, in the one order that is safe: the way back is stored
-/// before anything is written, every write is verified by reading it back, and
-/// the record is then corrected to describe what the Mac actually holds.
-///
-/// Every mutating path runs under the store's exclusive lock, and reads the live
-/// state inside it. The sequence is a read-modify-write over state shared with
-/// every other copy of this app on the Mac.
 /// Whether this process can still believe what it reads. A reference, so that
 /// every copy of the coordinator shares the one answer.
 ///
@@ -99,6 +92,11 @@ extension SpacingState {
 /// flush fails, this process reads and writes nothing more. A new process reads
 /// from disk, and the record it finds explains either outcome.
 final class ProcessTrust: @unchecked Sendable {
+    /// The process's own. A coordinator built later in the same process — a
+    /// window rebuilt by SwiftUI, say — must inherit the doubt, not start
+    /// believing again; tests pass their own so that a "relaunch" can forget.
+    static let shared = ProcessTrust()
+
     private let lock = NSLock()
     private var failed = false
     var flushHasFailed: Bool {
@@ -111,11 +109,18 @@ final class ProcessTrust: @unchecked Sendable {
     }
 }
 
+/// Applying and undoing, in the one order that is safe: the way back is stored
+/// before anything is written, every write is verified by reading it back, and
+/// the record is then corrected to describe what the Mac actually holds.
+///
+/// Every mutating path runs under the store's exclusive lock, and reads the live
+/// state inside it. The sequence is a read-modify-write over state shared with
+/// every other copy of this app on the Mac.
 struct SpacingCoordinator {
     let preferences: SpacingPreferenceReading & SpacingPreferenceWriting
     let backups: BackupStoring
     var now: () -> Date = Date.init
-    let trust = ProcessTrust()
+    var trust: ProcessTrust = .shared
 
     /// True once a write in this process failed to flush: the window has to say
     /// so and stop offering actions, because what it displays is a read too.
@@ -170,7 +175,6 @@ struct SpacingCoordinator {
             }
 
             let current = preferences.read(.currentHost)
-            existing = try resolvingDoubt(in: existing, current: current)
             let operations = SpacingPlan.operations(from: current, to: target)
 
             guard !operations.isEmpty else {
@@ -233,7 +237,7 @@ struct SpacingCoordinator {
     func restore() throws -> RestoreOutcome {
         guard !isInDoubt else { throw SpacingWriteError.processInDoubt }
         return try backups.withExclusiveAccess { () throws -> RestoreOutcome in
-            var record: BackupRecord?
+            let record: BackupRecord?
             do {
                 record = try backups.load()
             } catch {
@@ -241,7 +245,6 @@ struct SpacingCoordinator {
                 return .unusableBackup
             }
             let current = preferences.read(.currentHost)
-            record = try resolvingDoubt(in: record, current: current)
 
             switch RestorePlanner.decide(record: record, current: current) {
             case .noBackup:
@@ -270,26 +273,6 @@ struct SpacingCoordinator {
                 return .restored(actual)
             }
         }
-    }
-
-    /// A record that still names two states was left by a write that failed in
-    /// an earlier process. This process has had no failure, so it reads from
-    /// disk and can say which of the two the Mac holds: the record is settled on
-    /// that, and `replaced` goes. Left in place it would go on vouching for a
-    /// value this app no longer has anything to do with — through an
-    /// `alreadyApplied`, which writes nothing, and through every relaunch — so
-    /// that an outsider who later set that same value would have it undone as
-    /// ours. A state the record does not explain is left for `restore` and
-    /// `apply` to report as an outside change, with the record untouched.
-    private func resolvingDoubt(in record: BackupRecord?, current: SpacingSettings) throws -> BackupRecord? {
-        guard var record, record.replaced != nil,
-              RestorePlanner.isExplainedByOurWrite(current: current, record: record) else {
-            return record
-        }
-        record.applied = current
-        record.replaced = nil
-        try backups.save(record)
-        return record
     }
 
     /// Makes the record describe what the Mac actually holds — never the target

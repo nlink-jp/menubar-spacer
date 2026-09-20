@@ -25,8 +25,10 @@ final class SpacingCoordinatorTests: XCTestCase {
         if let disk { preferences.currentHost = disk }
         preferences.writeError = nil
         preferences.failureLands = false
+        // Its own trust: a relaunch forgets the doubt, and no test inherits
+        // another's through the process-wide default.
         coordinator = SpacingCoordinator(preferences: preferences, backups: backups,
-                                         now: { self.fixedDate })
+                                         now: { self.fixedDate }, trust: ProcessTrust())
     }
 
     // MARK: apply
@@ -347,23 +349,41 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertEqual(preferences.currentHost, .uniform(30))
     }
 
-    /// The next process reads from disk, so it can say which of the two states
-    /// the Mac is in, and the record stops vouching for the other one —
-    /// otherwise an outsider who later set that value would have it undone as
-    /// ours, through any number of relaunches.
-    func testTheNextProcessSettlesADoubtfulRecord() throws {
+    /// Nothing is settled from a read — not even a new process's. The
+    /// preferences daemon may go on serving the value it failed to save, so the
+    /// next process can read the phantom too; a record "settled" on it named
+    /// only the phantom, and once the daemon read the disk again Undo refused
+    /// the user's own value. The record keeps both states until a write has
+    /// been read back.
+    func testAPhantomReadInTheNextProcessDoesNotCostTheWayBack() throws {
         XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
         failNextWrite(landing: true)
         XCTAssertThrowsError(try coordinator.apply(.minimum))
 
-        relaunch(disk: .uniform(4))                                  // it had reached the disk
+        relaunch(disk: .uniform(4))                                  // still the phantom
         XCTAssertEqual(try coordinator.apply(.minimum), .alreadyApplied(.uniform(4)))
-        XCTAssertEqual(backups.record?.applied, .uniform(4))
-        XCTAssertNil(backups.record?.replaced, "settled by a read this process can believe")
+        XCTAssertEqual(backups.record?.replaced, .uniform(8), "a read settles nothing")
 
-        preferences.currentHost = .uniform(8)                        // an outsider, much later
-        XCTAssertEqual(try coordinator.restore(),
-                       .refusedExternalChange(current: .uniform(8), original: .unset))
+        relaunch(disk: .uniform(8))                                  // the daemon re-read the disk
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+    }
+
+    /// The doubt belongs to the process, not to one coordinator value: a second
+    /// coordinator built in the same process must not start believing again.
+    func testTheDoubtIsSharedByEveryCoordinatorOfTheProcess() throws {
+        let processWide = ProcessTrust()
+        let first = SpacingCoordinator(preferences: preferences, backups: backups,
+                                       now: { self.fixedDate }, trust: processWide)
+        XCTAssertEqual(try first.apply(.narrow), .applied(.uniform(8)))
+        failNextWrite(landing: true)
+        XCTAssertThrowsError(try first.apply(.minimum))
+
+        preferences.writeError = nil
+        let rebuilt = SpacingCoordinator(preferences: preferences, backups: backups,
+                                         now: { self.fixedDate }, trust: processWide)
+        XCTAssertTrue(rebuilt.isInDoubt)
+        XCTAssertThrowsError(try rebuilt.restore())
+        XCTAssertNotNil(backups.record)
     }
 
     func testAWriteThatWasReadBackLeavesNoDoubtInTheRecord() throws {
@@ -467,6 +487,17 @@ final class SpacingCoordinatorTests: XCTestCase {
                        "Spacing is back to the macOS default. \(OutcomeMessage.relaunchNote)")
         XCTAssertEqual(OutcomeMessage.apply(.alreadyApplied(.unset)),
                        "Already the macOS default. Nothing was changed.")
+
+        // The sentences a review read aloud and found garbled.
+        XCTAssertEqual(OutcomeMessage.apply(.noEffect(expected: .uniform(4), actual: .unset), everyHost: six),
+                       "macOS did not accept the change — this Mac still has no spacing of its own, "
+                       + "so the one set for every Mac outside this app applies (6). "
+                       + "This version of macOS may ignore the setting.")
+        XCTAssertEqual(OutcomeMessage.apply(.appliedOverExternalChange(.uniform(8), replaced: .unset), everyHost: six),
+                       "Spacing set to 8, after this Mac's own setting had been cleared outside this app. "
+                       + OutcomeMessage.relaunchNote)
+        XCTAssertFalse(OutcomeMessage.restore(.refusedExternalChange(current: .unset, original: .uniform(12)))
+            .contains("Choose the macOS default"), "that would recommend the state the Mac is already in")
 
         // Half cleared: one key this Mac's own, the other inherited.
         let half = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)

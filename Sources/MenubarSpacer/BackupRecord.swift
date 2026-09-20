@@ -23,7 +23,11 @@ struct BackupRecord: Equatable, Codable, Sendable {
     /// already run when the flush fails, so the process may read back a value
     /// the disk never got. Naming both lets Undo recognise its own state
     /// whichever it is. Never an outsider's value (ADR-0001 §10), and cleared
-    /// once a write has been read back. Optional, so a record written by an
+    /// only when a later write has been read back — never on the strength of a
+    /// read alone, not even a new process's: the preferences daemon may go on
+    /// serving a value it failed to save, and how long it does is not measured.
+    /// Until then a third party that sets a key to exactly this value is taken
+    /// for us, which is §9's rule with one more value in it. Optional, so a record written by an
     /// earlier version still decodes — and an earlier version reading this one
     /// ignores the key.
     var replaced: SpacingSettings? = nil
