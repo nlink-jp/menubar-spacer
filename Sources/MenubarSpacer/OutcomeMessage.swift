@@ -21,71 +21,91 @@ enum OutcomeMessage {
         """
 
     /// `everyHost` is the value set for every Mac outside this app, if any. When
-    /// this Mac's own setting is cleared, that value is what applies, and a
-    /// sentence that said "the macOS default" under a header reading "set to 6"
-    /// was the first version of this.
+    /// this Mac's own setting is cleared, that value is what applies — so "the
+    /// macOS default" is then the wrong name for the result, and a first attempt
+    /// that merely appended a sentence produced "Already the macOS default…
+    /// applies: 6." The phrase itself depends on it.
     static func apply(_ outcome: ApplyOutcome, everyHost: SpacingSettings = .unset) -> String {
-        withEveryHost(applyText(outcome), settings: settings(of: outcome), everyHost: everyHost)
+        applyText(outcome, Wording(everyHost: everyHost))
     }
 
     static func restore(_ outcome: RestoreOutcome, everyHost: SpacingSettings = .unset) -> String {
-        withEveryHost(restoreText(outcome), settings: settings(of: outcome), everyHost: everyHost)
+        restoreText(outcome, Wording(everyHost: everyHost))
     }
 
-    /// Appended only when the outcome left this Mac without a setting of its
-    /// own while one exists for every Mac: that is the value now in use.
-    private static func withEveryHost(_ text: String, settings: SpacingSettings?,
-                                      everyHost: SpacingSettings) -> String {
-        guard settings == .unset, everyHost != .unset else { return text }
-        return text + " This Mac has no setting of its own now, so the one made for every "
-            + "Mac outside this app applies: \(describe(everyHost))."
-    }
+    /// How a state is put into words, given what is set for every Mac.
+    struct Wording {
+        let everyHost: SpacingSettings
 
-    private static func settings(of outcome: ApplyOutcome) -> SpacingSettings? {
-        switch outcome {
-        case let .applied(s), let .alreadyApplied(s), let .alreadyAppliedRecordSetAside(s): return s
-        case let .appliedOverExternalChange(s, _): return s
-        case let .noEffect(_, actual): return actual
+        /// True when some key of `settings` is left to the every-host value.
+        func inherits(_ settings: SpacingSettings) -> Bool {
+            SpacingKey.allCases.contains { settings[$0] == .absent && everyHost[$0] != .absent }
+        }
+
+        /// "the macOS default", "8", … as the object of a sentence.
+        func describe(_ settings: SpacingSettings) -> String {
+            if settings == .unset {
+                return inherits(settings)
+                    ? "no spacing of its own, so the one set for every Mac outside this app "
+                        + "applies (\(plain(everyHost)))"
+                    : "the macOS default"
+            }
+            let own = plain(settings)
+            return inherits(settings)
+                ? own + ", in part from a value set for every Mac outside this app" : own
+        }
+
+        func nowReads(_ settings: SpacingSettings) -> String {
+            if settings == .unset {
+                return inherits(settings)
+                    ? "This Mac now has " + describe(settings)
+                    : "Spacing is back to the macOS default"
+            }
+            return "Spacing set to \(describe(settings))"
+        }
+
+        func already(_ settings: SpacingSettings) -> String {
+            settings == .unset && inherits(settings)
+                ? "This Mac already has " + describe(settings)
+                : "Already \(describe(settings))"
+        }
+
+        private func plain(_ settings: SpacingSettings) -> String {
+            if settings == .unset { return "the macOS default" }
+            if let value = settings.uniformValue { return String(value) }
+            return "a setting made outside this app"
         }
     }
 
-    private static func settings(of outcome: RestoreOutcome) -> SpacingSettings? {
-        switch outcome {
-        case let .restored(s): return s
-        case let .noEffect(_, actual): return actual
-        default: return nil
-        }
-    }
-
-    private static func applyText(_ outcome: ApplyOutcome) -> String {
+    private static func applyText(_ outcome: ApplyOutcome, _ w: Wording) -> String {
         switch outcome {
         case let .applied(settings):
-            return "\(nowReads(settings)). \(relaunchNote)"
+            return "\(w.nowReads(settings)). \(relaunchNote)"
         case let .alreadyApplied(settings):
-            return "Already \(describe(settings)). Nothing was changed."
+            return "\(w.already(settings)). Nothing was changed."
         case let .alreadyAppliedRecordSetAside(settings):
-            return "Already \(describe(settings)), so the spacing was not changed. The saved "
+            return "\(w.already(settings)), so the spacing was not changed. The saved "
                 + "original that could not be read has been moved aside; you can choose any "
                 + "spacing again."
         case let .appliedOverExternalChange(settings, replaced):
-            return "\(nowReads(settings)), replacing \(describe(replaced)) that was set "
+            return "\(w.nowReads(settings)), replacing \(w.describe(replaced)) that was set "
                 + "outside this app. \(relaunchNote)"
         case let .noEffect(_, actual):
             return "macOS did not accept the change — the spacing is still "
-                + "\(describe(actual)). This version of macOS may ignore the setting."
+                + "\(w.describe(actual)). This version of macOS may ignore the setting."
         }
     }
 
-    private static func restoreText(_ outcome: RestoreOutcome) -> String {
+    private static func restoreText(_ outcome: RestoreOutcome, _ w: Wording) -> String {
         switch outcome {
         case let .restored(settings):
-            return "Put back the spacing this Mac had before: \(describe(settings)). \(relaunchNote)"
+            return "Put back the spacing this Mac had before: \(w.describe(settings)). \(relaunchNote)"
         case .alreadyOriginal:
             return "Already back to how it was."
         case .nothingToRestore:
             return "Nothing to undo — this app has not changed anything."
         case let .refusedExternalChange(current, _):
-            return "The spacing was changed outside this app (now \(describe(current))). "
+            return "The spacing was changed outside this app (now \(w.describe(current))). "
                 + "Undoing would throw that away, so nothing was changed. "
                 + "Choose the macOS default if you want to clear it."
         case .unusableBackup:
@@ -96,7 +116,7 @@ enum OutcomeMessage {
                 + "changed. You can still choose the macOS default."
         case let .noEffect(_, actual):
             return "macOS did not accept the change — the spacing is still "
-                + "\(describe(actual)). This version of macOS may ignore the setting."
+                + "\(w.describe(actual)). This version of macOS may ignore the setting."
         }
     }
 
@@ -113,24 +133,19 @@ enum OutcomeMessage {
         case BackupStoreError.lockFailed:
             return "Another copy of this app is busy changing the spacing. "
                 + "Try again in a moment."
-        case SpacingWriteError.synchronizationFailed:
-            return "macOS would not save the change. Nothing else was changed; try again."
+        case SpacingWriteError.synchronizationFailed, SpacingWriteError.processInDoubt:
+            // Not "try again": after a save that failed, this window cannot tell
+            // what the Mac holds, and a second attempt acts on a read it should
+            // not believe. The first version of this sentence invited exactly
+            // that.
+            return "macOS would not save the change, so this window can no longer tell what "
+                + "your Mac holds. Quit menubar-spacer and open it again: your earlier "
+                + "spacing and the way back are kept."
         case SpacingWriteError.unrestorableValue:
             return "This Mac's earlier setting cannot be written back, so nothing was "
                 + "changed. You can still choose the macOS default."
         default:
             return "The spacing could not be changed, and nothing else was changed."
         }
-    }
-
-    private static func nowReads(_ settings: SpacingSettings) -> String {
-        settings == .unset ? "Spacing is back to the macOS default"
-                           : "Spacing set to \(describe(settings))"
-    }
-
-    private static func describe(_ settings: SpacingSettings) -> String {
-        if settings == .unset { return "the macOS default" }
-        if let value = settings.uniformValue { return String(value) }
-        return "a setting made outside this app"
     }
 }

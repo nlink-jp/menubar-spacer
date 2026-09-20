@@ -117,17 +117,24 @@ the output location and the signing.
   The second is moved aside when the user takes the way home even if nothing is
   written; otherwise, with both keys already unset, nothing ever moves it and
   every value preset refuses for good (ADR-0001 §11, amended).
-- **Nothing read after a failed write is believed.** `CFPreferencesSetMultiple`
-  has run by the time the flush can fail, so the process may read back a value
-  the disk never got. The pre-write record therefore names both states the Mac
-  can be left in — `applied` (the target) and `replaced` (this app's own earlier
-  value, never an outsider's) — and a write that throws leaves it exactly so;
-  `isExplainedByOurWrite` accepts either. A first repair settled the record from
-  a read after the failure; review showed it could drop the original on a failed
-  restore and adopt an outside value, and it never shipped (ADR-0001 §2,
-  amended). `StubSpacingPreferences.failureLands` models the failure the OS
-  actually produces: every failed-write test runs both ways, because one that
-  only knows "nothing changed" proves nothing about the other.
+- **Nothing read after a failed flush is believed — by the record, or by the
+  process.** `CFPreferencesSetMultiple` has run by the time the flush can fail,
+  so the process may read back a value the disk never got. *The record:* the
+  pre-write record names both states the Mac can be left in — `applied` (the
+  target) and `replaced` (this app's own earlier value, never an outsider's) —
+  and a write that throws leaves it exactly so; `isExplainedByOurWrite` accepts
+  either. *The process:* `ProcessTrust` marks it, `apply` and `restore` then
+  refuse with `processInDoubt`, and the window offers nothing and does not
+  refresh — because the NEXT click re-read the keys and believed them: a retried
+  Undo dropped the record, a retried way home made the next process record the
+  app's own value as the original, a second change recorded a phantom as
+  `replaced`. A new process reads from disk and settles a two-state record on
+  what it finds (`resolvingDoubt`). Two earlier repairs were withdrawn in review
+  before release (ADR-0001 §2, amended). In tests a relaunch is `relaunch(disk:)`
+  — a NEW coordinator over the same stubs — and
+  `StubSpacingPreferences.failureLands` is the failure the OS actually produces;
+  a test that reuses the coordinator, or only knows "nothing changed", proves
+  nothing about either.
 - **What is in effect is not what this host holds.** `SpacingState.effective`
   overlays the current-host keys on the every-host ones, per key, which is where
   `defaults write -g` without `-currentHost` puts a value. The window describes
@@ -205,8 +212,9 @@ the guard is the org's standard for every Swift GUI app here
   obstruction; undoing over an unexplained state would be destruction.
 - **A state that is partly ours is ours to clean up.**
   `RestorePlanner.isExplainedByOurWrite` accepts any state whose keys each hold
-  either the original or the last observed value, which covers a half-landed
-  write and a crash between the write and the record correction.
+  the original, the last observed value, or — only while a write is in doubt —
+  the value that write was replacing; which covers a half-landed write, a crash
+  between the write and the record correction, and a flush that failed.
 - **A write that does not take is `noEffect`, not success.** These keys are
   undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global

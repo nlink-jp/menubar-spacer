@@ -14,6 +14,17 @@ final class SpacingCoordinatorTests: XCTestCase {
         preferences = StubSpacingPreferences()
         backups = StubBackupStore()
         preferences.journal = backups            // one shared ordering journal
+        relaunch()
+    }
+
+    /// A new process over the same disk: the record and the keys stay, and the
+    /// coordinator — with what it remembers about this process — is new.
+    /// `disk` is what the keys hold there, which after a failed flush need not
+    /// be what the old process read back.
+    private func relaunch(disk: SpacingSettings? = nil) {
+        if let disk { preferences.currentHost = disk }
+        preferences.writeError = nil
+        preferences.failureLands = false
         coordinator = SpacingCoordinator(preferences: preferences, backups: backups,
                                          now: { self.fixedDate })
     }
@@ -204,57 +215,119 @@ final class SpacingCoordinatorTests: XCTestCase {
     // MARK: a write that fails
     //
     // When the flush fails the values may or may not have reached the disk, and
-    // nothing read afterwards says which: the OS has already applied them to
-    // the process's own view. So every case is run both ways — the write landed,
-    // or it did not — and "after a relaunch" is modelled by putting the keys
-    // where the disk would have them.
+    // nothing this process reads afterwards says which: the OS has already
+    // applied them to the process's own view. Two things follow, and each has
+    // its tests. The record has to explain both outcomes to the NEXT process;
+    // and THIS process has to stop, because its next read would be believed.
+
+    private func failNextWrite(landing lands: Bool) {
+        preferences.writeError = .synchronizationFailed(actual: .unset)
+        preferences.failureLands = lands
+    }
 
     /// The defect: the record named only the target. A second change that
     /// failed left the Mac on the first one, which the record no longer
     /// mentioned, and Undo refused the user's own change as an outsider's.
-    func testUndoWorksAfterAFailedSecondChangeWhicheverWayItFailed() throws {
+    func testUndoWorksInTheNextProcessWhicheverWayTheWriteFailed() throws {
         for lands in [false, true] {
-            setUp()
-            XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+            for diskGotIt in [false, true] {
+                setUp()
+                XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+                failNextWrite(landing: lands)
+                XCTAssertThrowsError(try coordinator.apply(.minimum))
+                XCTAssertEqual(backups.record?.applied, .uniform(4))
+                XCTAssertEqual(backups.record?.replaced, .uniform(8))
 
-            preferences.writeError = .synchronizationFailed(actual: .uniform(8))
-            preferences.failureLands = lands
-            XCTAssertThrowsError(try coordinator.apply(.minimum))
-            XCTAssertEqual(backups.record?.original, .unset, "lands=\(lands)")
-            XCTAssertEqual(backups.record?.applied, .uniform(4), "lands=\(lands)")
-            XCTAssertEqual(backups.record?.replaced, .uniform(8), "lands=\(lands)")
-
-            preferences.writeError = nil
-            XCTAssertEqual(try coordinator.restore(), .restored(.unset), "lands=\(lands)")
-            XCTAssertNil(backups.record, "lands=\(lands)")
+                relaunch(disk: diskGotIt ? .uniform(4) : .uniform(8))
+                XCTAssertEqual(try coordinator.restore(), .restored(.unset),
+                               "lands=\(lands) diskGotIt=\(diskGotIt)")
+                XCTAssertNil(backups.record)
+            }
         }
     }
 
-    /// And when the process saw the write land but the disk never got it: after
-    /// a relaunch the Mac is back on the first change, and Undo still knows it.
-    func testUndoWorksWhenTheDiskNeverGotWhatTheProcessSaw() throws {
+    /// After a failed flush this process reads and writes nothing more. The
+    /// cases below are what it did when it carried on — each one reproduced
+    /// against a writer whose failure lands in the process's own view, which is
+    /// what the OS does and the stub used not to.
+    func testAFailedFlushEndsThisProcesssReadsAndWrites() throws {
         XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
-        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
-        preferences.failureLands = true
+        failNextWrite(landing: true)
         XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertTrue(coordinator.isInDoubt)
 
-        preferences.currentHost = .uniform(8)   // relaunch: the flush had failed
+        preferences.writeError = nil            // even if macOS would now accept it
+        let writesBefore = preferences.appliedOperations.count
+        let recordBefore = backups.record
+        for attempt in [{ _ = try self.coordinator.apply(.wide) },
+                        { _ = try self.coordinator.apply(.osDefault) },
+                        { _ = try self.coordinator.restore() }] {
+            XCTAssertThrowsError(try attempt()) { error in
+                XCTAssertEqual(error as? SpacingWriteError, .processInDoubt)
+            }
+        }
+        XCTAssertEqual(preferences.appliedOperations.count, writesBefore)
+        XCTAssertEqual(backups.record, recordBefore, "the record is not touched on the strength of a read")
+    }
+
+    /// Undo failed, the user pressed it again: the second press read the
+    /// original back from the process's own view, called it "already original"
+    /// and dropped the record — with the disk still on the app's value, and no
+    /// way back after a relaunch.
+    func testARetriedUndoDoesNotDropTheRecord() throws {
+        preferences.currentHost = .uniform(12)
+        XCTAssertEqual(try coordinator.apply(.wide), .applied(SpacingPreset.wide.settings))
+        failNextWrite(landing: true)
+        XCTAssertThrowsError(try coordinator.restore())
         preferences.writeError = nil
+        XCTAssertThrowsError(try coordinator.restore())             // the retry
+        XCTAssertEqual(backups.record?.original, .uniform(12))
+
+        relaunch(disk: SpacingPreset.wide.settings)                  // the disk never got it
+        XCTAssertEqual(try coordinator.restore(), .restored(.uniform(12)))
+    }
+
+    /// The same on the way home: the failed return to the default, retried,
+    /// used to leave the next process recording the app's own 8 as the original.
+    func testARetriedWayHomeDoesNotDropTheRecord() throws {
+        XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+        failNextWrite(landing: true)
+        XCTAssertThrowsError(try coordinator.apply(.osDefault))
+        preferences.writeError = nil
+        XCTAssertThrowsError(try coordinator.apply(.osDefault))     // the retry
+        XCTAssertThrowsError(try coordinator.restore())
+
+        relaunch(disk: .uniform(8))
+        XCTAssertEqual(try coordinator.restore(), .restored(.unset))
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
+        XCTAssertEqual(backups.record?.original, .unset, "never a value this app produced")
+    }
+
+    /// Two changes that failed in a row used to record the first failure's
+    /// phantom as the state the second replaced, and the next process then
+    /// refused Undo over the real one.
+    func testASecondChangeCannotBuildOnAFailedOne() throws {
+        XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+        failNextWrite(landing: true)
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertThrowsError(try coordinator.apply(.wide))
+        XCTAssertEqual(backups.record?.replaced, .uniform(8), "still the last state that was read back")
+
+        relaunch(disk: .uniform(8))
         XCTAssertEqual(try coordinator.restore(), .restored(.unset))
     }
 
     func testAFailedFirstChangeLeavesAWayBackOnlyIfSomethingChanged() throws {
-        preferences.writeError = .synchronizationFailed(actual: .unset)
+        failNextWrite(landing: false)
         XCTAssertThrowsError(try coordinator.apply(.minimum))
-        preferences.writeError = nil
+        relaunch()
         XCTAssertEqual(try coordinator.restore(), .alreadyOriginal)
         XCTAssertNil(backups.record)
 
         setUp()
-        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
-        preferences.failureLands = true
+        failNextWrite(landing: true)
         XCTAssertThrowsError(try coordinator.apply(.minimum))
-        preferences.writeError = nil
+        relaunch(disk: .uniform(4))
         XCTAssertEqual(try coordinator.restore(), .restored(.unset))
     }
 
@@ -264,35 +337,33 @@ final class SpacingCoordinatorTests: XCTestCase {
     func testAFailedChangeOverAnOutsideValueDoesNotAdoptIt() throws {
         XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
         preferences.currentHost = .uniform(30)          // someone else
-        preferences.writeError = .synchronizationFailed(actual: .uniform(30))
+        failNextWrite(landing: false)
         XCTAssertThrowsError(try coordinator.apply(.wide))
         XCTAssertNil(backups.record?.replaced)
 
-        preferences.writeError = nil
+        relaunch(disk: .uniform(30))
         XCTAssertEqual(try coordinator.restore(),
                        .refusedExternalChange(current: .uniform(30), original: .unset))
         XCTAssertEqual(preferences.currentHost, .uniform(30))
     }
 
-    /// A restore stores no intention, so a failed one changes nothing about the
-    /// record — in particular it never drops it on the strength of what the
-    /// process reads back.
-    func testAFailedRestoreNeverLosesTheOriginal() throws {
-        for lands in [false, true] {
-            setUp()
-            preferences.currentHost = .uniform(12)
-            XCTAssertEqual(try coordinator.apply(.wide), .applied(SpacingPreset.wide.settings))
+    /// The next process reads from disk, so it can say which of the two states
+    /// the Mac is in, and the record stops vouching for the other one —
+    /// otherwise an outsider who later set that value would have it undone as
+    /// ours, through any number of relaunches.
+    func testTheNextProcessSettlesADoubtfulRecord() throws {
+        XCTAssertEqual(try coordinator.apply(.narrow), .applied(.uniform(8)))
+        failNextWrite(landing: true)
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
 
-            preferences.writeError = .synchronizationFailed(actual: .uniform(12))
-            preferences.failureLands = lands
-            XCTAssertThrowsError(try coordinator.restore())
-            XCTAssertEqual(backups.record?.original, .uniform(12), "lands=\(lands)")
+        relaunch(disk: .uniform(4))                                  // it had reached the disk
+        XCTAssertEqual(try coordinator.apply(.minimum), .alreadyApplied(.uniform(4)))
+        XCTAssertEqual(backups.record?.applied, .uniform(4))
+        XCTAssertNil(backups.record?.replaced, "settled by a read this process can believe")
 
-            // Relaunch with the disk never having got the restore.
-            preferences.currentHost = SpacingPreset.wide.settings
-            preferences.writeError = nil
-            XCTAssertEqual(try coordinator.restore(), .restored(.uniform(12)), "lands=\(lands)")
-        }
+        preferences.currentHost = .uniform(8)                        // an outsider, much later
+        XCTAssertEqual(try coordinator.restore(),
+                       .refusedExternalChange(current: .uniform(8), original: .unset))
     }
 
     func testAWriteThatWasReadBackLeavesNoDoubtInTheRecord() throws {
@@ -300,6 +371,15 @@ final class SpacingCoordinatorTests: XCTestCase {
         _ = try coordinator.apply(.minimum)
         XCTAssertEqual(backups.record?.applied, .uniform(4))
         XCTAssertNil(backups.record?.replaced)
+        XCTAssertFalse(coordinator.isInDoubt)
+    }
+
+    /// Only a failed flush taints the process: the other write error is raised
+    /// before anything is handed to macOS.
+    func testOnlyAFailedFlushPutsTheProcessInDoubt() throws {
+        preferences.writeError = .unrestorableValue(.spacing)
+        XCTAssertThrowsError(try coordinator.apply(.minimum))
+        XCTAssertFalse(coordinator.isInDoubt)
     }
 
     func testARecordFromBeforeThisFieldStillDecodes() throws {
@@ -364,22 +444,33 @@ final class SpacingCoordinatorTests: XCTestCase {
     /// The sentences must not contradict the header: with an every-host value,
     /// clearing this Mac's setting does not produce "the macOS default".
     func testOutcomesSayWhatAppliesWhenThisMacsSettingIsCleared() throws {
-        preferences.anyHost = .uniform(6)
-        let already = OutcomeMessage.apply(try coordinator.apply(.osDefault), everyHost: .uniform(6))
-        XCTAssertTrue(already.contains("applies: 6"), already)
+        let six = SpacingSettings.uniform(6)
+        let cleared: [String] = [
+            OutcomeMessage.apply(.applied(.unset), everyHost: six),
+            OutcomeMessage.apply(.alreadyApplied(.unset), everyHost: six),
+            OutcomeMessage.apply(.alreadyAppliedRecordSetAside(.unset), everyHost: six),
+            OutcomeMessage.apply(.noEffect(expected: .uniform(4), actual: .unset), everyHost: six),
+            OutcomeMessage.restore(.restored(.unset), everyHost: six),
+            OutcomeMessage.restore(.noEffect(expected: .uniform(4), actual: .unset), everyHost: six),
+        ]
+        for sentence in cleared {
+            XCTAssertTrue(sentence.contains("applies (6)"), sentence)
+            // The first attempt appended a sentence and kept the old one, which
+            // produced "Already the macOS default. … applies: 6."
+            XCTAssertFalse(sentence.contains("macOS default"), sentence)
+        }
 
-        _ = try coordinator.apply(.minimum)
-        let back = OutcomeMessage.apply(try coordinator.apply(.osDefault), everyHost: .uniform(6))
-        XCTAssertTrue(back.contains("applies: 6"), back)
+        // Unchanged when the outcome leaves a setting of its own, or when there
+        // is no every-host value.
+        XCTAssertFalse(OutcomeMessage.apply(.applied(.uniform(4)), everyHost: six).contains("every Mac"))
+        XCTAssertEqual(OutcomeMessage.apply(.applied(.unset)),
+                       "Spacing is back to the macOS default. \(OutcomeMessage.relaunchNote)")
+        XCTAssertEqual(OutcomeMessage.apply(.alreadyApplied(.unset)),
+                       "Already the macOS default. Nothing was changed.")
 
-        _ = try coordinator.apply(.minimum)
-        let undone = OutcomeMessage.restore(try coordinator.restore(), everyHost: .uniform(6))
-        XCTAssertTrue(undone.contains("applies: 6"), undone)
-
-        // And nothing is added when the outcome leaves a setting of its own, or
-        // when there is no every-host value.
-        XCTAssertFalse(OutcomeMessage.apply(.applied(.uniform(4)), everyHost: .uniform(6)).contains("applies:"))
-        XCTAssertFalse(OutcomeMessage.apply(.applied(.unset)).contains("applies:"))
+        // Half cleared: one key this Mac's own, the other inherited.
+        let half = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)
+        XCTAssertTrue(OutcomeMessage.apply(.applied(half), everyHost: six).contains("in part from"))
     }
 
     func testNothingIsSaidWhenNoEveryHostValueExists() {

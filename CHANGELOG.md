@@ -16,6 +16,12 @@ Semantic Versioning.
   until the write has been read back, so Undo recognises either. It is not
   guessed from a read after the failure: macOS can report a value it did not
   save.
+- **After a save that failed, the window stops.** It used to say "try again",
+  and trying again acted on that same unreliable reading: a second Undo could
+  conclude the Mac was already back to normal and discard the saved original
+  while your change was still in effect. The window now keeps showing what it
+  last knew, offers no further action, and asks you to quit and reopen the app —
+  which reads the real state and picks up the way back.
 - **A saved original that cannot be decoded no longer locks the app.** With the
   spacing already at the macOS default, choosing the default wrote nothing, so
   the unusable file was never moved aside: every other spacing refused from then

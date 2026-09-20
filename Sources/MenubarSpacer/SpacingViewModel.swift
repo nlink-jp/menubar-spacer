@@ -24,9 +24,17 @@ final class SpacingViewModel: ObservableObject {
     }
 
     /// True while this app is holding a spacing the Mac did not have before.
-    var canUndo: Bool { state.backup != .absent }
+    var canUndo: Bool { state.backup != .absent && !isInDoubt }
 
+    /// True once a save failed in this window: what it shows is then a read it
+    /// cannot vouch for, so it offers nothing but the advice to reopen.
+    var isInDoubt: Bool { coordinator.isInDoubt }
+
+    /// Not while in doubt: what the window shows is a read too, and after a save
+    /// that failed it would display the value macOS reported and did not keep.
+    /// The last state read before the failure stays on screen.
     func refresh() {
+        guard !isInDoubt else { return }
         state = coordinator.state()
     }
 

@@ -110,4 +110,51 @@ final class SpacingViewModelTests: XCTestCase {
                                                                        replaced: .uniform(30)))
                           )
     }
+
+    // MARK: the every-host value reaches the sentences
+
+    /// The wiring, not the wording: deleting `everyHost:` from the view model
+    /// used to leave every test green.
+    func testTheWindowsMessagesKnowAboutTheEveryHostValue() {
+        preferences.anyHost = .uniform(6)
+        let model = makeModel()
+        model.selection = .osDefault
+        model.apply()
+        XCTAssertEqual(model.message,
+                       OutcomeMessage.apply(.alreadyApplied(.unset), everyHost: .uniform(6)))
+        XCTAssertNotEqual(model.message, OutcomeMessage.apply(.alreadyApplied(.unset)))
+
+        model.selection = .minimum
+        model.apply()
+        model.restore()
+        XCTAssertEqual(model.message,
+                       OutcomeMessage.restore(.restored(.unset), everyHost: .uniform(6)))
+    }
+
+    // MARK: after a save that failed
+
+    func testAfterAFailedSaveTheWindowOffersNothingAndShowsNoPhantom() {
+        let model = makeModel()
+        model.selection = .narrow
+        model.apply()
+        XCTAssertEqual(model.state.currentHost, .uniform(8))
+
+        preferences.writeError = .synchronizationFailed(actual: .uniform(4))
+        preferences.failureLands = true
+        model.selection = .minimum
+        model.apply()
+
+        XCTAssertTrue(model.isInDoubt)
+        XCTAssertFalse(model.canUndo)
+        XCTAssertEqual(model.state.currentHost, .uniform(8),
+                       "the window must not display the value macOS reported and did not keep")
+        XCTAssertEqual(model.message, OutcomeMessage.failure(SpacingWriteError.processInDoubt))
+        XCTAssertFalse(model.message?.contains("try again") ?? true)
+
+        preferences.writeError = nil
+        let writes = preferences.appliedOperations.count
+        model.apply()
+        model.restore()
+        XCTAssertEqual(preferences.appliedOperations.count, writes, "nothing more is written from this window")
+    }
 }

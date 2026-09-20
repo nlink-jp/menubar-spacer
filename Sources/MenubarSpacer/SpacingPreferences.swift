@@ -37,6 +37,10 @@ enum SpacingWriteError: Error, Equatable {
     case synchronizationFailed(actual: SpacingSettings)
     /// A recorded value could not be turned back into a property list.
     case unrestorableValue(SpacingKey)
+    /// An earlier write in this process failed to flush, so this process can no
+    /// longer tell what the Mac holds. Nothing more is read or written until
+    /// the app is opened again.
+    case processInDoubt
 }
 
 /// Reads and writes the two keys in the current user's global preference domain

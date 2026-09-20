@@ -51,14 +51,36 @@ when the flush fails, so the process can read back a value the disk never got. A
 record corrected from that read could drop the original on a failed restore, and
 could adopt an outsider's value as this app's own (against §10).
 
-So nothing is read after a failure. The pre-write record carries a third field,
+So nothing read after a failure is believed — and that has two halves, because
+the failing call is not the only one that reads.
+
+*The record.* The pre-write record carries a third field,
 `replaced`: what this app's own earlier write had left, when that is what the
 write in progress replaces — never an outsider's value. If the write throws, the
 record stays exactly as written and explains either outcome; §10's test accepts
 `original`, `applied` or `replaced` per key. A write that returns is read back as
 before, and that correction clears `replaced`. Restore stores no intention
-first, so it needed no change. The field is optional: an earlier record decodes
-without it, and an earlier version ignores it.
+first, so its record needed no change. The field is optional: an earlier record
+decodes without it, and an earlier version ignores it.
+
+*The process.* A second review of this amendment found the first half alone
+insufficient: the next click re-read the keys, believed the answer, and acted on
+it. A retried Undo read the original back from the process's own view, reported
+"already original" and dropped the record while the disk still held the app's
+value — no way back after a relaunch. A retried way home did the same, and the
+next process recorded the app's own value as the Mac's original. A second change
+recorded the first failure's phantom as the state it replaced. (The discard
+paths are v0.1.0's; the untrustworthy read is what made them fire.) So once a
+flush fails, `ProcessTrust` marks the process and `apply` and `restore` refuse
+with `processInDoubt` until the app is opened again; the window stops offering
+actions, keeps showing the last state it read before the failure, and says to
+quit and reopen — the sentence used to say "try again". A new process reads
+from disk. It settles a record that still names two states on the one it finds
+(`resolvingDoubt`), so `replaced` does not go on vouching for a value through
+relaunches and no-op applies, to be "undone" when an outsider later sets it.
+
+How long macOS keeps reporting the unsaved value is not measured. Nothing here
+depends on the answer.
 
 Both fields of `BackupRecord` hold what was actually read:
 
@@ -119,7 +141,8 @@ one a moment out of date.
 ### 9. A state that is partly ours is ours to clean up
 
 `RestorePlanner.isExplainedByOurWrite` accepts any state in which each key holds
-either its original value or the last value we observed. That covers the state we
+either its original value, the last value we observed, or — only while a write
+is in doubt (§2, amended) — the value that write was replacing. That covers the state we
 left behind, a write the OS honoured for one key only, and a crash between the
 write and the record correction. Anything else is `changedExternally`. A third
 party that happens to set a key to precisely the value we wrote is
@@ -211,7 +234,7 @@ the data.
 
 ## Consequences
 
-- The UI must render four apply outcomes and seven restore outcomes, including
+- The UI must render five apply outcomes and seven restore outcomes, including
   the refusals. Silent no-ops are not available.
 - The lock closes the race between two running copies. A **single-instance
   guard** is still required before the UI can apply anything — two windows both

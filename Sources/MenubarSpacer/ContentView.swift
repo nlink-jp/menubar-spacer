@@ -17,6 +17,7 @@ struct ContentView: View {
 
             HStack(spacing: 10) {
                 Button("Apply") { model.apply() }
+                    .disabled(model.isInDoubt)
                     .keyboardShortcut(.defaultAction)
                 Button("Undo my changes") { model.restore() }
                     .disabled(!model.canUndo)
