@@ -33,7 +33,7 @@ Measured on macOS 27.0 with a test app whose status item is 21pt wide:
 | Item width | 37pt | 25pt | 29pt | 45pt |
 
 Roughly `width ≈ icon + value`, which puts the built-in default near 16. Six
-icons side by side occupy 186px at Minimum against 258px at the default — see
+icons side by side occupy 174px at Minimum against 246px at the default — see
 [the photographs](docs/en/preset-appearance.md).
 
 ## Limits
@@ -57,9 +57,11 @@ icons side by side occupy 186px at Minimum against 258px at the default — see
 ## Before you uninstall
 
 **Click "Undo my changes" first.** Removing the app does not undo the spacing —
-the setting belongs to macOS, not to the app — and uninstalling takes the record
-of what your Mac held beforehand with it. If that has already happened, the
-command below still returns you to the macOS default.
+the setting belongs to macOS, not to the app. The record of what your Mac held
+beforehand stays behind, in `~/Library/Application Support/jp.nlink.menubar-spacer/`
+(neither dragging the app to the Trash nor `brew uninstall --zap` removes it), so
+reinstalling the app brings Undo back; without the app, the command below
+returns you to the macOS default.
 
 ## Undoing it without the app
 

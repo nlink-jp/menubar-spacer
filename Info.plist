@@ -21,6 +21,6 @@
 	<key>LSMultipleInstancesProhibited</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2026 nlink-jp. All rights reserved.</string>
+	<string>Copyright © 2026 nlink-jp. MIT License.</string>
 </dict>
 </plist>

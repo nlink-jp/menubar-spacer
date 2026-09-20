@@ -13,10 +13,15 @@ eye.
 
 | Preset | Six icons | Against the default |
 |---|---:|---:|
-| Minimum (4) | 186 px | −72 px (−28%) |
-| Narrow (8) | 210 px | −48 px (−19%) |
-| macOS default | 258 px | — |
-| Wide (24) | 306 px | +48 px (+19%) |
+| Minimum (4) | 174 px | −72 px (−29%) |
+| Narrow (8) | 198 px | −48 px (−20%) |
+| macOS default | 246 px | — |
+| Wide (24) | 294 px | +48 px (+20%) |
+
+The widths are the sum of the six items' own windows (`item_window_widths` in
+`evidence/screenshots/capture.json`). An earlier version of this table gave the
+width of each photograph's crop, which adds a 12 px margin — 186 / 210 / 258 /
+306 — and took its percentages from those.
 
 Per icon that is 12, 8, and −8 points respectively, which matches the geometry
 measured in [phase1-results](phase1-results.md): `width ≈ intrinsic + N`.

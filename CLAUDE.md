@@ -2,9 +2,9 @@
 
 **Organization rules (mandatory): https://github.com/nlink-jp/.github/blob/main/CONVENTIONS.md**
 
-Project summary, structure, non-negotiable rules, the outstanding Phase 1
-hardware checks and the known gotchas live in [AGENTS.md](AGENTS.md). Read it
-before changing anything here.
+Project summary, structure, non-negotiable rules, the Phase 1 hardware results
+and the known gotchas live in [AGENTS.md](AGENTS.md). Read it before changing
+anything here.
 
 The two rules worth repeating: this app may write **only**
 `NSStatusItemSpacing` and `NSStatusItemSelectionPadding`, only in the

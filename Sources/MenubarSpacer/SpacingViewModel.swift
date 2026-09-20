@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// Work runs on the calling thread: a write is a handful of local CFPreferences
 /// calls, and the lock it takes is uncontended because the app is
-/// single-instance and the preview child never writes. Moving this off the main
+/// single-instance. Moving this off the main
 /// thread would buy nothing and put a safety-critical sequence behind a second
 /// source of truth.
 @MainActor
