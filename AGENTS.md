@@ -222,6 +222,14 @@ the guard is the org's standard for every Swift GUI app here
   `RestorePlanner.isExplainedByOurWrite` accepts any state whose keys each hold
   the original or the last observed value, which covers a half-landed write and
   a crash between the write and the record correction.
+- **A failure to write the record down is not a failure to change the spacing.**
+  After the preferences have been written the Mac has changed, so a store that
+  will not save the *correction* raises `SpacingRecordError.notUpdated` and the
+  sentence says what the Mac holds and that applying a spacing again rewrites
+  the note (v0.1.0 and v0.1.1 said "The spacing could not be changed", which was
+  false). Where the record already on disk says what the correction would write,
+  the rewrite is best effort. Failing to store the record *before* the write is
+  a real failure — nothing has been written yet. ADR-0001 §12.
 - **A write that does not take is `noEffect`, not success.** These keys are
   undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global

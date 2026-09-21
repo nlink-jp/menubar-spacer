@@ -73,7 +73,7 @@ macOS 27.0 (2026-09-21):
   that evidence, and the hardware tests failed every successful write.)
 
 So at the moment of writing, neither source says whether the change was saved,
-and the read-back (§12) goes through the API: it sees a change macOS rejects or
+and the read-back (§13) goes through the API: it sees a change macOS rejects or
 ignores, and it cannot see this one. On a Mac in that state the window reports
 success and macOS reverts within a minute. What follows depends on the click:
 
@@ -207,7 +207,20 @@ put back by hand — and the alternative is the dead end above, for a case this
 app has no way to tell apart. Names get a numbered suffix when two files are set
 aside within one second.
 
-### 12. Every write is verified by reading it back, and only differing keys are written
+### 12. A failure to write the record down is not a failure to change the spacing
+
+Once the preferences have been written, the Mac has changed. If the record
+cannot be *corrected* afterwards, the change stands and only the bookkeeping is
+stale, so it is reported as `SpacingRecordError.notUpdated` — the sentence says
+what the Mac now holds and that applying any spacing again rewrites the note.
+v0.1.0 and v0.1.1 reported "The spacing could not be changed", which was false.
+
+Where the record already on disk says what the correction would write — the
+write did what was asked, so the record stored before it is true — the rewrite
+is best effort and no failure is reported at all. Failing to store the record
+*before* the write is a real failure: nothing has been written yet.
+
+### 13. Every write is verified by reading it back, and only differing keys are written
 
 `SystemSpacingPreferences.apply` re-reads the scope and returns what it found;
 the coordinator compares it with the target and reports `noEffect` when they

@@ -229,6 +229,55 @@ final class SpacingCoordinatorTests: XCTestCase {
         XCTAssertEqual(backups.quarantineCount, 0)
     }
 
+    // MARK: the record will not write
+
+    /// The spacing changed; only the note of what to go back to did not. v0.1.0
+    /// and v0.1.1 said "The spacing could not be changed", which was false.
+    func testAChangeThatLandedIsNotReportedAsAFailedChange() throws {
+        preferences.currentHost = .uniform(30)          // set outside this app
+        backups.saveError = .notSaved("read-only volume")
+
+        // The pre-write record cannot be stored either, so this one does fail —
+        // and nothing has been written yet.
+        XCTAssertThrowsError(try coordinator.apply(.minimum)) { error in
+            XCTAssertEqual(error as? BackupStoreError, .notSaved("read-only volume"))
+        }
+        XCTAssertTrue(preferences.appliedOperations.isEmpty, "nothing was written")
+        XCTAssertEqual(preferences.currentHost, .uniform(30))
+    }
+
+    /// The failure that matters: the pre-write record is stored, the write lands
+    /// on one key only, and the correction cannot be written.
+    func testAPartlyLandedWriteWhoseRecordWillNotUpdateSaysSo() throws {
+        let half = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)
+        preferences.readBackOverride = half
+        backups.onSave = { [weak backups] in
+            // Let the pre-write record through, fail the correction after it.
+            backups?.saveError = .notSaved("read-only volume")
+        }
+
+        XCTAssertThrowsError(try coordinator.apply(.minimum)) { error in
+            XCTAssertEqual(error as? SpacingRecordError,
+                           .notUpdated(actual: half, cause: "notSaved(\"read-only volume\")"))
+        }
+        let message = OutcomeMessage.failure(
+            SpacingRecordError.notUpdated(actual: half, cause: "x"))
+        XCTAssertFalse(message.contains("could not be changed"), message)
+        XCTAssertTrue(message.contains("could not update its note"), message)
+        XCTAssertTrue(message.contains("apply a spacing again"), message)
+    }
+
+    /// A write that did what was asked leaves the record already correct, so a
+    /// refusal to rewrite it is not worth failing over.
+    func testAWriteThatDidWhatWasAskedIgnoresARecordThatWillNotRewrite() throws {
+        backups.onSave = { [weak backups] in
+            backups?.saveError = .notSaved("read-only volume")
+        }
+        XCTAssertEqual(try coordinator.apply(.minimum), .applied(.uniform(4)))
+        XCTAssertEqual(backups.record?.original, .unset)
+        XCTAssertEqual(backups.record?.applied, .uniform(4), "stored before the write, and true")
+    }
+
     // MARK: a write that fails, or changes nothing
 
     /// When macOS REPORTS that a change was not saved. (A save that fails without

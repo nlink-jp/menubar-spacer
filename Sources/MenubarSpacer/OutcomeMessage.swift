@@ -170,6 +170,13 @@ enum OutcomeMessage {
                 + "Try again in a moment."
         case SpacingWriteError.synchronizationFailed:
             return "macOS would not save the change. Nothing else was changed; try again."
+        case let SpacingRecordError.notUpdated(actual, _):
+            // The spacing did change. Only the note of what to go back to did
+            // not, so say what the Mac holds and what to do about the note.
+            let w = Wording(everyHost: .unset)
+            return "\(w.nowReads(actual)), but this app could not update its note of what "
+                + "your Mac had before. Undo may refuse until you apply a spacing again, "
+                + "which writes the note afresh. \(relaunchNote)"
         case SpacingWriteError.unrestorableValue:
             return "This Mac's earlier setting cannot be written back, so nothing was "
                 + "changed. You can still choose the macOS default."

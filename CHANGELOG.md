@@ -4,6 +4,17 @@ All notable changes to menubar-spacer are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- **A spacing that was applied could be reported as "could not be changed".**
+  When the app could not write its note of what your Mac had before — a full
+  disk, a permission problem — it said the spacing could not be changed, though
+  it had been. It now says what the spacing is, that the note could not be
+  updated, and that applying a spacing again writes the note afresh. Where the
+  note on disk was already correct, nothing is reported at all.
+
 ## [0.1.1] - 2026-09-21
 
 ### Fixed

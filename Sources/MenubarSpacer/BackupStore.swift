@@ -29,6 +29,9 @@ enum BackupStoreError: Error, Equatable {
     /// returns the same bytes: this one does not get better by waiting.
     case undecodable(String)
     case lockFailed(String)
+    /// The record could not be written. Its own case so that a failure to write
+    /// down the way back is never reported as a failure to change the spacing.
+    case notSaved(String)
 }
 
 /// A single JSON file under Application Support, written atomically, guarded by
@@ -62,10 +65,14 @@ struct FileBackupStore: BackupStoring {
     }
 
     func save(_ record: BackupRecord) throws {
-        try createContainer()
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try encoder.encode(record).write(to: url, options: .atomic)
+        do {
+            try createContainer()
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            try encoder.encode(record).write(to: url, options: .atomic)
+        } catch {
+            throw BackupStoreError.notSaved(String(describing: error))
+        }
     }
 
     func clear() throws {
@@ -117,6 +124,11 @@ final class StubBackupStore: BackupStoring {
     var loadError: BackupStoreError?
     /// Simulates a record file that will not delete.
     var clearError: BackupStoreError?
+    /// Simulates a record file that will not write.
+    var saveError: BackupStoreError?
+    /// Runs after each successful save, so a test can let the pre-write record
+    /// through and fail the correction that follows it.
+    var onSave: (() -> Void)?
     private(set) var saveCount = 0
     private(set) var clearCount = 0
     private(set) var quarantineCount = 0
@@ -142,8 +154,10 @@ final class StubBackupStore: BackupStoring {
 
     func save(_ record: BackupRecord) throws {
         journal.append("save")
+        if let saveError { throw saveError }
         saveCount += 1
         self.record = record
+        onSave?()
     }
 
     func clear() throws {

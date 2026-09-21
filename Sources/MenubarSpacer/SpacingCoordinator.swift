@@ -32,6 +32,14 @@ enum RestoreOutcome: Equatable {
     case noEffect(expected: SpacingSettings, actual: SpacingSettings)
 }
 
+/// The spacing was changed and the record of the way back was not. The change
+/// stands; what is stale is the app's own bookkeeping, and applying any spacing
+/// again rewrites it. Its own error so that this is never reported as "the
+/// spacing could not be changed", which is what v0.1.0 and v0.1.1 said.
+enum SpacingRecordError: Error, Equatable {
+    case notUpdated(actual: SpacingSettings, cause: String)
+}
+
 /// Whether a way back exists. One value, not two booleans: a UI that reads
 /// "no backup" when the record is merely unreadable would tell the user nothing
 /// is in effect at the exact moment something is.
@@ -238,19 +246,34 @@ struct SpacingCoordinator {
             throw error
         }
 
-        if actual == original {
-            // Back where the Mac started: "there is a backup" keeps meaning
-            // "something of ours is in effect".
-            discardRecord()
-        } else if actual == current {
-            // Nothing changed, so the record goes back exactly as it was.
-            // Recording `actual` instead would adopt a value someone else had
-            // set as this app's own, and a later Undo would remove it without a
-            // word (§10).
-            if target != nil, let existing { try backups.save(existing) }
-        } else {
-            // What the Mac holds — never the target that was asked for.
-            try backups.save(BackupRecord(original: original, applied: actual, capturedAt: now()))
+        // The Mac has been changed by now, so a failure to write the record down
+        // is not a failure to change the spacing (`SpacingRecordError`), and it
+        // is not even worth reporting where the record already on disk says what
+        // this would have written.
+        do {
+            if actual == original {
+                // Back where the Mac started: "there is a backup" keeps meaning
+                // "something of ours is in effect".
+                discardRecord()
+            } else if actual == current {
+                // Nothing changed, so the record goes back exactly as it was.
+                // Recording `actual` instead would adopt a value someone else
+                // had set as this app's own, and a later Undo would remove it
+                // without a word (§10).
+                if target != nil, let existing { try backups.save(existing) }
+            } else if actual != target {
+                // A write that landed in part: the pre-write record names the
+                // target, which the Mac does not hold, so this correction is
+                // the one that matters.
+                try backups.save(BackupRecord(original: original, applied: actual, capturedAt: now()))
+            } else {
+                // The write did what was asked, so the record stored before it
+                // already says this. Worth writing again for `capturedAt`, not
+                // worth a failure.
+                try? backups.save(BackupRecord(original: original, applied: actual, capturedAt: now()))
+            }
+        } catch {
+            throw SpacingRecordError.notUpdated(actual: actual, cause: String(describing: error))
         }
         return actual
     }
