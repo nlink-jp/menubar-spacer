@@ -58,7 +58,7 @@ build-app: build
 ## package: build-app, notarize + staple the .app, then zip for release
 package: build-app
 	@$(NOTARIZE_SCRIPT) $(APP_BUNDLE) "$(NOTARY_PROFILE)"
-	@cd $(DIST_DIR) && /usr/bin/ditto -c -k --keepParent $(APP_NAME).app $(NAME)-$(VERSION)-darwin-arm64.zip
+	@cd $(DIST_DIR) && /usr/bin/ditto --norsrc --noextattr -c -k --keepParent $(APP_NAME).app $(NAME)-$(VERSION)-darwin-arm64.zip
 	@ls -la $(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip
 
 ## verify-release: refuse to release an un-notarized build (marker + staple gate)
@@ -70,7 +70,7 @@ verify-release:
 	@xcrun stapler validate $(APP_BUNDLE)
 	@test -f "$(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip" || { \
 		echo "verify-release: FAIL — release zip missing: $(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip"; exit 1; }
-	@scripts/verify-app-icon.sh "$(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip"
+	@scripts/verify-app-zip.sh "$(DIST_DIR)/$(NAME)-$(VERSION)-darwin-arm64.zip"
 	@sdk=$$(otool -l "$(APP_BUNDLE)/Contents/MacOS/$(APP_NAME)" | awk '/LC_BUILD_VERSION/{f=1} f && /^ *sdk /{print $$2; exit}'); \
 		test "$$sdk" = "$(MACOS_SDK)" || { \
 			echo "verify-release: FAIL — linked SDK is $$sdk, expected $(MACOS_SDK)."; \

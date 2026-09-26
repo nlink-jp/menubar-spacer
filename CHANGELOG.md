@@ -4,6 +4,14 @@ All notable changes to menubar-spacer are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/), and the project adheres to
 Semantic Versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- The release zip no longer carries AppleDouble (`._*`) entries: the app is
+  zipped with `ditto --norsrc --noextattr`, so its signature survives unpacking
+  with `unzip`. `make verify-release` refuses a zip that carries them.
+
 ## [0.1.2] - 2026-09-21
 
 ### Fixed
