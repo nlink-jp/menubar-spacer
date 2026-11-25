@@ -6,6 +6,10 @@ Prose does not compile, so a feature removed from the code can live on in the
 documents indefinitely. Every retired name below was a real mechanism that was
 built, measured, and then withdrawn; a reappearance means either the mechanism
 came back without its documents, or a document was never swept.
+
+The oldest supported macOS is stated in five places — Package.swift, Info.plist,
+the cask floor in the Makefile and both READMEs — and none of them reads another,
+so they are checked against Package.swift here.
 """
 
 import re
@@ -32,6 +36,11 @@ RETIRED = {
     "writesAreNotSaved": "an unsaved write is invisible at write time; it is a documented limit",
 }
 
+# Homebrew's names for the macOS majors this app may declare as its floor.
+# A major missing here is a problem, not a guess: add its name from Homebrew's
+# MacOSVersion::SYMBOLS when the floor moves.
+BREW_MACOS = {"26": ":tahoe", "27": ":golden_gate"}
+
 SEARCHED = [ROOT / "Sources", ROOT / "Tests", ROOT / "docs", ROOT / "spikes"]
 SEARCHED += [ROOT / name for name in ("README.md", "README.ja.md", "AGENTS.md", "CLAUDE.md")]
 
@@ -46,8 +55,35 @@ def files():
                     yield path
 
 
-def main():
+def floor_problems():
+    """Every place that states the oldest supported macOS, against Package.swift."""
+    def read(name):
+        return (ROOT / name).read_text(encoding="utf-8")
+
+    found = re.search(r'\.macOS\("(\d+)\.0"\)', read("Package.swift"))
+    if not found:
+        return ['Package.swift: no .macOS("NN.0") platform found']
+    major = found.group(1)
     problems = []
+
+    plist = re.search(r"<key>LSMinimumSystemVersion</key>\s*<string>([^<]*)</string>", read("Info.plist"))
+    if not plist or plist.group(1) != f"{major}.0":
+        problems.append(f"Info.plist: LSMinimumSystemVersion is {plist and plist.group(1)!r}, Package.swift says {major}.0")
+
+    cask = re.search(r"^BREW_MACOS_FLOOR := (\S+)", read("Makefile"), re.MULTILINE)
+    if major not in BREW_MACOS:
+        problems.append(f"scripts/check-docs.py: no Homebrew name for macOS {major} in BREW_MACOS")
+    elif not cask or cask.group(1) != BREW_MACOS[major]:
+        problems.append(f"Makefile: BREW_MACOS_FLOOR is {cask and cask.group(1)!r}, macOS {major} is {BREW_MACOS[major]}")
+
+    for name, phrase in (("README.md", f"macOS {major} or later"), ("README.ja.md", f"macOS {major} 以降")):
+        if phrase not in read(name):
+            problems.append(f"{name}: does not state {phrase!r} (Package.swift says {major}.0)")
+    return problems
+
+
+def main():
+    problems = floor_problems()
 
     for path in files():
         text = path.read_text(encoding="utf-8")
