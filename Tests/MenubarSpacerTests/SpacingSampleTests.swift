@@ -8,7 +8,7 @@ import XCTest
 /// sample at all.
 final class SpacingSampleTests: XCTestCase {
     /// Square status item window widths measured on macOS 27.0 (26A428),
-    /// docs/en/preset-appearance.md.
+    /// docs/en/preset-appearance.md; identical on 26.7.1 (25G241).
     private let measured: [(value: Int?, width: CGFloat)] = [
         (nil, 38), (4, 26), (8, 30), (24, 46),
     ]

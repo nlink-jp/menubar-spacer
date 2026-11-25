@@ -112,7 +112,7 @@ instant-translate とする。
 
 8. README.md / README.ja.md / CHANGELOG.md / AGENTS.md。
 9. Developer ID 署名 + notarize + staple、`make verify-release`。
-10. GitHub リリース、Homebrew cask（`BREW_MACOS_FLOOR` は macOS 27 相当に設定）。
+10. GitHub リリース、Homebrew cask（`BREW_MACOS_FLOOR` は対応 OS の下限に合わせて設定）。
 11. submodule として util-series に追加、org profile 更新、`check-org.sh`、
     再利用可能な知見を `nlink-jp/knowledge` へ還元。
 
@@ -150,8 +150,8 @@ instant-translate、grid-edit、zip-porter）。cli-series は外部サービス
    Apple 純正項目、複数ディスプレイ、オーバーフロー時の挙動は未確認。
 5. **App Store 配布は不可。** サンドボックス下ではグローバル設定ドメインに書き込めない。
    直接配布（Developer ID 署名 + notarize）のみ。
-6. **対象は macOS 27 以降、Apple Silicon。** 実測は 27.0 (26A428) のみ。
-   macOS 26 以前は検証しておらず、対象外とする。
+6. **対象は macOS 26 以降、Apple Silicon。** 実測は 27.0 (26A428) と 26.7.1 (25G241)。
+   26.x のそれ以外の版と macOS 15 以前は検証していない。15 以前は対象外とする。
 7. **現ユーザー・現ホストのみに作用する。** 他のユーザーアカウントや他の Mac には及ばない。
 
 ---
@@ -183,6 +183,10 @@ instant-translate、grid-edit、zip-porter）。cli-series は外部サービス
 - 代替は**ウィンドウ内の見本描画**。全プリセットを各 6 アイコン・左端を揃えて同時に描く
   ——写真を読めるものにしていたのと同じ並べ方——のを、適用前に見せる。選択 UI も兼ねる。
   これは縮尺図だが、寸法は実機計測値にテストで固定してあり、描く対象から乖離できない。
-- 対応 OS は macOS 27+ に限定。手元に macOS 26 の Apple Silicon 機があり検証も
+- 対応 OS は当初 macOS 27+ に限定した。手元に macOS 26 の Apple Silicon 機があり検証も
   可能だったが、検証範囲を広げずに実測済みの範囲だけを保証する方針を選んだ。
+- 2026-11-25: 同じ方針のもと、実測を済ませたうえで下限を macOS 26 に引き下げた。
+  26.7.1 でコード無変更のままビルド・全テスト（実機テストを含む）・Phase 1 計測 2 回が
+  通り、計測した幅はすべて 27.0 と完全一致した。27.0 を宣言したビルドは同 OS で
+  LaunchServices に起動を拒否される。`evidence/2026-11-25-macos26/` を参照。
 - 配布は GitHub Release + Homebrew cask。既存の Swift GUI アプリと同じ経路。

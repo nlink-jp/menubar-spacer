@@ -17,7 +17,7 @@
 	<key>CFBundleVersion</key>
 	<string>${VERSION}</string>
 	<key>LSMinimumSystemVersion</key>
-	<string>27.0</string>
+	<string>26.0</string>
 	<key>LSMultipleInstancesProhibited</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>

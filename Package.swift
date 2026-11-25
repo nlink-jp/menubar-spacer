@@ -3,12 +3,13 @@ import PackageDescription
 
 let package = Package(
     name: "MenubarSpacer",
-    // macOS 27 baseline: the spacing behaviour of NSStatusItemSpacing /
-    // NSStatusItemSelectionPadding was only measured on 27.0 (26A428). The string
-    // form is used deliberately — the `.v27` platform enum case may not exist in
-    // older toolchains, whereas "27.0" is accepted by any SwiftPM whose SDK
-    // provides it.
-    platforms: [.macOS("27.0")],
+    // macOS 26 baseline: the spacing behaviour of NSStatusItemSpacing /
+    // NSStatusItemSelectionPadding was measured on 27.0 (26A428) and reproduced
+    // value for value on 26.7.1 (25G241) — evidence/2026-11-25-macos26/. The
+    // string form is used deliberately — a `.vNN` platform enum case may not
+    // exist in older toolchains, whereas "26.0" is accepted by any SwiftPM whose
+    // SDK provides it.
+    platforms: [.macOS("26.0")],
     targets: [
         .executableTarget(
             name: "MenubarSpacer",

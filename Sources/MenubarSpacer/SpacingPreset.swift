@@ -4,8 +4,9 @@ import Foundation
 /// feasibility study only ever measured them changed in lockstep, so a preset is
 /// one number, not two.
 ///
-/// All four values were measured on macOS 27.0 (26A428) with an AppKit fixture
-/// whose text item has an intrinsic width of 21pt. Window width per value:
+/// All four values were measured on macOS 27.0 (26A428), and reproduced exactly
+/// on 26.7.1 (25G241), with an AppKit fixture whose text item has an intrinsic
+/// width of 21pt. Window width per value:
 ///
 ///     unset → 37,  4 → 25,  8 → 29,  24 → 45
 ///

@@ -121,7 +121,7 @@ review is mandatory.
 
 8. README.md / README.ja.md / CHANGELOG.md / AGENTS.md.
 9. Developer ID signing, notarization, stapling, and `make verify-release`.
-10. GitHub release and a Homebrew cask (`BREW_MACOS_FLOOR` set for macOS 27).
+10. GitHub release and a Homebrew cask (`BREW_MACOS_FLOOR` set to the supported floor).
 11. Add as a util-series submodule, update the org profile, run `check-org.sh`,
     and feed reusable findings back to `nlink-jp/knowledge`.
 
@@ -164,8 +164,9 @@ intelligence and IR — none of which fit.
    measured. Apple's own items, multiple displays and overflow layouts are untested.
 5. **App Store distribution is not possible.** A sandboxed app cannot write the
    global preference domain. Direct distribution (Developer ID + notarization) only.
-6. **macOS 27 and later, Apple Silicon.** Measurements come from 27.0 (26A428)
-   only. macOS 26 and earlier were not tested and are out of scope.
+6. **macOS 26 and later, Apple Silicon.** Measurements come from 27.0 (26A428)
+   and 26.7.1 (25G241). Other 26.x releases and macOS 15 and earlier were not
+   tested; 15 and earlier are out of scope.
 7. **Current user and current host only.** Other accounts and other Macs are unaffected.
 
 ---
@@ -204,8 +205,13 @@ intelligence and IR — none of which fit.
   photographs legible — before applying anything. It doubles as the picker. It
   is a scale drawing, and its geometry is pinned by tests to the widths
   measured on hardware, so it cannot drift away from what it depicts.
-- Supported OS is limited to macOS 27+. A macOS 26 Apple Silicon machine was
-  available to test on, but the chosen policy is to promise only what has been
-  measured rather than widen the verification surface.
+- Supported OS was first limited to macOS 27+. A macOS 26 Apple Silicon machine
+  was available to test on, but the chosen policy was to promise only what had
+  been measured rather than widen the verification surface.
+- 2026-11-25: the floor was lowered to macOS 26 under the same policy, once it
+  had been measured. On 26.7.1 the build, every test (the hardware tests
+  included) and two runs of the Phase 1 checks passed with no change to the
+  code, and every measured width matched 27.0 exactly; a build declaring 27.0
+  is refused there by LaunchServices. See `evidence/2026-11-25-macos26/`.
 - Distribution is GitHub Release plus a Homebrew cask, the same route as the
   other Swift GUI apps.

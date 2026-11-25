@@ -6,6 +6,14 @@ Semantic Versioning.
 
 ## [Unreleased]
 
+### Changed
+
+- **Runs on macOS 26 as well.** The oldest supported macOS is now 26 (Tahoe)
+  instead of 27. Nothing in the app changed: on macOS 26.7.1 every test passed
+  and every measured width matched macOS 27.0 to the point
+  (`evidence/2026-11-25-macos26/`). The Homebrew cask follows on the next
+  `make brew`.
+
 ### Fixed
 
 - The release zip no longer carries AppleDouble (`._*`) entries: the app is

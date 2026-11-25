@@ -100,7 +100,7 @@ BREW_DESC := Adjust macOS menu bar icon spacing, with exact restore
 BREW_NAME := $(NAME)
 BREW_APP := $(APP_NAME).app
 BREW_BUNDLE_ID := $(BUNDLE_ID)
-# macOS 27 is :golden_gate in Homebrew's RELEASES table (26 is :tahoe). The
+# macOS 26 is :tahoe in Homebrew's RELEASES table (27 is :golden_gate). The
 # template's :big_sur default would advertise support this app does not have.
-BREW_MACOS_FLOOR := :golden_gate
+BREW_MACOS_FLOOR := :tahoe
 include scripts/release-brew.mk

@@ -3,8 +3,8 @@ import SwiftUI
 /// The geometry the in-window sample is drawn with.
 ///
 /// These are not chosen numbers. A square status item occupies
-/// `iconWidth + value` points, measured on macOS 27.0 with the keys at 4, 8, 24
-/// and unset — see docs/en/preset-appearance.md, whose photographs this drawing
+/// `iconWidth + value` points, measured on macOS 27.0 (and again on 26.7.1) with
+/// the keys at 4, 8, 24 and unset — see docs/en/preset-appearance.md, whose photographs this drawing
 /// has to agree with. `SpacingSampleTests` pins every number against that table,
 /// so the drawing cannot drift away from the thing it depicts.
 enum SpacingSample {

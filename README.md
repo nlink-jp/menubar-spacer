@@ -9,7 +9,7 @@ they held beforehand, and restores that state on demand.
 
 ## Requirements
 
-- macOS 27 or later, Apple Silicon. Signed with Developer ID and notarized.
+- macOS 26 or later, Apple Silicon. Signed with Developer ID and notarized.
 - No permissions. The app needs no Accessibility, Screen Recording or Full Disk
   Access grant, no administrator rights, and no network access.
 
@@ -26,7 +26,8 @@ The spacing value applies to `NSStatusItemSpacing` and `NSStatusItemSelectionPad
 together, in the current user's global preferences for this Mac only. Nothing
 else is written.
 
-Measured on macOS 27.0 with a test app whose status item is 21pt wide:
+Measured on macOS 27.0, and reproduced to the point on macOS 26.7.1, with a test
+app whose status item is 21pt wide:
 
 | Setting | unset (OS default) | 4 | 8 | 24 |
 |---|---:|---:|---:|---:|

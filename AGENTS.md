@@ -2,7 +2,7 @@
 
 A non-resident macOS app that changes menu bar icon spacing through two
 undocumented global preferences and restores the prior state exactly.
-Swift / SwiftUI + AppKit, Swift Package Manager, macOS 27+, Apple Silicon.
+Swift / SwiftUI + AppKit, Swift Package Manager, macOS 26+, Apple Silicon.
 
 **Released.** The three hardware questions are answered
 (`docs/en/phase1-results.md`); the preference layer, the backup layer and the
@@ -234,8 +234,11 @@ the guard is the org's standard for every Swift GUI app here
   undocumented; a future macOS may accept the write and ignore it.
 - App Store distribution is impossible: a sandboxed app cannot write the global
   preference domain. Direct distribution with Developer ID + notarization only.
-- The cask floor must be set for macOS 27 before the first `make brew`; the
-  template default `:big_sur` would advertise unsupported systems.
+- The oldest supported macOS is stated in Package.swift, Info.plist, the cask
+  floor (`BREW_MACOS_FLOOR`) and both READMEs; `scripts/check-docs.py` fails
+  when they disagree. The template default `:big_sur` would advertise
+  unsupported systems. The floor moved from 27 to 26 on the evidence in
+  `evidence/2026-11-25-macos26/` — 26.7.1 only; 26.0–26.6 are unmeasured.
 
 ## Design reference
 
@@ -244,4 +247,5 @@ the guard is the org's standard for every Swift GUI app here
 - Evidence for every measured claim: `evidence/phase1-hardware-checks.json`, the
   spacing experiment in the `menu-bar-feasibility` study that preceded it, and
   `evidence/2026-09-21-preference-save/` (probes and output for what
-  CFPreferences and the plist report after a write).
+  CFPreferences and the plist report after a write), and
+  `evidence/2026-11-25-macos26/` (the same checks re-run on macOS 26.7.1).

@@ -2,6 +2,9 @@
 
 2026-09-15; macOS 27.0 (26A428), Apple Silicon.
 
+Re-run on 2026-11-25 on macOS 26.7.1 (25G241): two complete runs, every result
+identical to the numbers below — `evidence/2026-11-25-macos26/`.
+
 **All three open questions are answered, and the preset values are settled.** Two complete runs produced identical numbers, and
 the preferences were restored to their original absent state after each.
 
