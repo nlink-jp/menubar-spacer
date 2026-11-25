@@ -1,0 +1,21 @@
+before: api=<absent> disk=<absent> mtime=883.050
+set 8: synchronize=true
+  set    +     0 ms  api=8  disk=<absent>  mtime=883.050
+  set    +    54 ms  api=8  disk=<absent>  mtime=883.050
+  set    +   258 ms  api=8  disk=<absent>  mtime=883.050
+  set    +   759 ms  api=8  disk=<absent>  mtime=883.050
+  set    +  1762 ms  api=8  disk=8  mtime=913.061
+  set    +  3773 ms  api=8  disk=8  mtime=913.061
+  set    +  6775 ms  api=8  disk=8  mtime=913.061
+  set    + 10777 ms  api=8  disk=8  mtime=913.061
+  set    + 15783 ms  api=8  disk=8  mtime=913.061
+delete: synchronize=true
+  delete +     3 ms  api=<absent>  disk=8  mtime=913.061
+  delete +    58 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete +   266 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete +   771 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete +  1774 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete +  3779 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete +  6785 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete + 10791 ms  api=<absent>  disk=<absent>  mtime=928.041
+  delete + 15796 ms  api=<absent>  disk=<absent>  mtime=928.041

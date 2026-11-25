@@ -1,0 +1,20 @@
+# Timestamp (JST): 2026-11-25T16:10:18+0900
+# sw_vers
+ProductName:		macOS
+ProductVersion:		26.7.1
+BuildVersion:		25G241
+# uname -srm
+Darwin 25.6.0 arm64
+# swift --version
+Apple Swift version 6.4.2 (swiftlang-6.4.2.1.9 clang-2100.4.1.1)
+Target: arm64-apple-macosx26.0
+# xcrun --sdk macosx --show-sdk-version
+27.2
+# xcodebuild -version
+Xcode 27.2
+Build version 27B52
+# target repo commit
+ca58e6e840975295e2c623d8af0ed669c34669e4
+ca58e6e (HEAD, origin/main, origin/HEAD, main) fix: ship the .app zip without AppleDouble entries
+# LaunchServices -10825 header definition
+49:	kLSIncompatibleSystemVersionErr = -10825, //!< The app cannot run on the current OS version

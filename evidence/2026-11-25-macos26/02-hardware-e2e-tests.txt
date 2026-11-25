@@ -1,0 +1,49 @@
+# Timestamp (JST): 2026-11-25T16:10:53+0900
+=== Pre-test preference state ===
+[-currentHost] NSStatusItemSpacing => 2026-11-25 16:10:53.255 defaults[66456:53238363] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSpacing) does not exist
+[-currentHost] NSStatusItemSelectionPadding => 2026-11-25 16:10:53.267 defaults[66458:53238367] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSelectionPadding) does not exist
+[anyHost] NSStatusItemSpacing => 2026-11-25 16:10:53.274 defaults[66460:53238373] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSpacing) does not exist
+[anyHost] NSStatusItemSelectionPadding => 2026-11-25 16:10:53.286 defaults[66462:53238377] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSelectionPadding) does not exist
+=== Running HardwareEndToEndTests (.build/out/Products/Debug/MenubarSpacerTests.xctest) ===
+Test Suite 'Selected tests' started at 2026-11-25 16:10:53.532.
+Test Suite 'MenubarSpacerTests.xctest' started at 2026-11-25 16:10:53.533.
+Test Suite 'HardwareEndToEndTests' started at 2026-11-25 16:10:53.533.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testADecimalIsNotSilentlyTruncated]' started.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testADecimalIsNotSilentlyTruncated]' passed (0.002 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testAnEmptyPlanWritesNothing]' started.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testAnEmptyPlanWritesNothing]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testApplyAndRestoreAgainstTheRealPreferenceDomain]' started.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testApplyAndRestoreAgainstTheRealPreferenceDomain]' passed (0.008 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim]' started.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim]' passed (0.005 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testWritingASingleKeyLeavesTheOtherUntouched]' started.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testWritingASingleKeyLeavesTheOtherUntouched]' passed (0.004 seconds).
+Test Suite 'HardwareEndToEndTests' passed at 2026-11-25 16:10:53.552.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.019 (0.019) seconds
+Test Suite 'MenubarSpacerTests.xctest' passed at 2026-11-25 16:10:53.552.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.019 (0.019) seconds
+Test Suite 'Selected tests' passed at 2026-11-25 16:10:53.552.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.019 (0.020) seconds
+[hardware-test] if this run is interrupted, restore with:
+  defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delete -g NSStatusItemSelectionPadding
+[hardware-test] if this run is interrupted, restore with:
+  defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delete -g NSStatusItemSelectionPadding
+[hardware-test] if this run is interrupted, restore with:
+  defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delete -g NSStatusItemSelectionPadding
+[hardware-test] if this run is interrupted, restore with:
+  defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delete -g NSStatusItemSelectionPadding
+[hardware-test] if this run is interrupted, restore with:
+  defaults -currentHost delete -g NSStatusItemSpacing; defaults -currentHost delete -g NSStatusItemSelectionPadding
+=== Post-test preference state ===
+[-currentHost] NSStatusItemSpacing => 2026-11-25 16:10:53.563 defaults[66469:53238414] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSpacing) does not exist
+[-currentHost] NSStatusItemSelectionPadding => 2026-11-25 16:10:53.570 defaults[66471:53238419] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSelectionPadding) does not exist
+[anyHost] NSStatusItemSpacing => 2026-11-25 16:10:53.578 defaults[66473:53238423] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSpacing) does not exist
+[anyHost] NSStatusItemSelectionPadding => 2026-11-25 16:10:53.585 defaults[66475:53238433] 
+The domain/default pair of (kCFPreferencesAnyApplication, NSStatusItemSelectionPadding) does not exist

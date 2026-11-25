@@ -1,0 +1,436 @@
+# Timestamp (JST): 2026-11-25T16:10:19+0900
+=== diff Package.swift ===
+--- /private/tmp/menubar-spacer-verify-pkg/orig/Package.swift	2026-11-25 16:10:19
++++ /private/tmp/menubar-spacer-verify-pkg/v26/Package.swift	2026-11-25 16:10:19
+@@ -8,7 +8,7 @@
+     // form is used deliberately — the `.v27` platform enum case may not exist in
+     // older toolchains, whereas "27.0" is accepted by any SwiftPM whose SDK
+     // provides it.
+-    platforms: [.macOS("27.0")],
++    platforms: [.macOS("26.0")],
+     targets: [
+         .executableTarget(
+             name: "MenubarSpacer",
+=== diff Info.plist ===
+--- /private/tmp/menubar-spacer-verify-pkg/orig/Info.plist	2026-11-25 16:10:19
++++ /private/tmp/menubar-spacer-verify-pkg/v26/Info.plist	2026-11-25 16:10:19
+@@ -17,7 +17,7 @@
+ 	<key>CFBundleVersion</key>
+ 	<string>${VERSION}</string>
+ 	<key>LSMinimumSystemVersion</key>
+-	<string>27.0</string>
++	<string>26.0</string>
+ 	<key>LSMultipleInstancesProhibited</key>
+ 	<true/>
+ 	<key>NSHumanReadableCopyright</key>
+=== Extracted MACOS_MIN=26.0 MACOS_SDK=27.2 ===
+=== swift test --disable-sandbox (v26) ===
+warning: <HOME>/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: <HOME>/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+warning: <HOME>/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.
+warning: 'v26': failed storing manifest for 'v26' in cache: attempt to write a readonly database
+Building for debugging...
+[Planning deferred tasks]
+[41 / 74]
+[44 / 77] SpacingProbe-product
+[55 / 171]
+[61 / 171]
+[66 / 171]
+[68 / 171]
+[69 / 171]
+[74 / 171]
+[76 / 171]
+[79 / 171]
+[85 / 171]
+[88 / 171]
+[90 / 171]
+[91 / 171]
+[103 / 171]
+[107 / 171]
+[109 / 171]
+[126 / 171] SpacingProbe-product
+[128 / 171] SpacingProbe-product
+[133 / 171] MenubarSpacer
+[146 / 171] MenubarSpacer
+[148 / 171] MenubarSpacer-product
+[154 / 171] SpacingProbe-product
+[159 / 171] MenubarSpacerTests-product
+[161 / 172] MenubarSpacerTests-product
+[163 / 186]
+[165 / 186]
+[166 / 186]
+[175 / 186] MenubarSpacerTests-product
+[180 / 186] MenubarSpacerTests-product
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/SpacingSampleTests.swift:74:22: [1;33mwarning: [1;39mexpression implicitly coerced from 'Int??' to 'Any?'[0;0m
+[0;36m72 |[0;0m         // Nothing sensible to draw: saying so beats inventing a spacing.
+[0;36m73 |[0;0m         let mixed = SpacingSettings(spacing: .integer(4), selectionPadding: .absent)
+[0;36m74 |[0;0m         XCTAssertNil([4;39mSpacingSample.value(of: mixed)[0;0m)
+   [0;36m|[0;0m                      |             |- [1;39mnote: [1;39mprovide a default value to avoid this warning[0;0m
+   [0;36m|[0;0m                      |             |- [1;39mnote: [1;39mforce-unwrap the value to avoid this warning[0;0m
+   [0;36m|[0;0m                      |             `- [1;39mnote: [1;39mexplicitly cast to 'Any?' with 'as Any?' to silence this warning[0;0m
+   [0;36m|[0;0m                      `- [1;33mwarning: [1;39mexpression implicitly coerced from 'Int??' to 'Any?'[0;0m
+[0;36m75 |[0;0m         XCTAssertEqual(SpacingSample.value(of: .unset), .some(nil))
+[0;36m76 |[0;0m         XCTAssertEqual(SpacingSample.value(of: .uniform(8)), .some(8))
+[182 / 186] MenubarSpacerTests-product
+[185 / 186] MenubarSpacerTests-product
+Build complete! (21.78秒)
+Test Suite 'All tests' started at 2026-11-25 16:10:44.788.
+Test Suite 'MenubarSpacerTests.xctest' started at 2026-11-25 16:10:44.789.
+Test Suite 'AppInfoTests' started at 2026-11-25 16:10:44.789.
+Test Case '-[MenubarSpacerTests.AppInfoTests testAMissingBundleVersionReadsAsDev]' started.
+Test Case '-[MenubarSpacerTests.AppInfoTests testAMissingBundleVersionReadsAsDev]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.AppInfoTests testARealVersionIsShownVerbatim]' started.
+Test Case '-[MenubarSpacerTests.AppInfoTests testARealVersionIsShownVerbatim]' passed (0.000 seconds).
+Test Suite 'AppInfoTests' passed at 2026-11-25 16:10:44.790.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'FileBackupStoreTests' started at 2026-11-25 16:10:44.790.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testAnUninterpretableValueSurvivesTheRoundTrip]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testAnUninterpretableValueSurvivesTheRoundTrip]' passed (0.007 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testARecordRoundTripsThroughDisk]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testARecordRoundTripsThroughDisk]' passed (0.003 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testClearingRemovesTheRecordAndIsIdempotent]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testClearingRemovesTheRecordAndIsIdempotent]' passed (0.015 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testDamagedContentThrowsRatherThanReadingAsNoBackup]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testDamagedContentThrowsRatherThanReadingAsNoBackup]' passed (0.005 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testExclusiveAccessSerialisesTwoConcurrentHolders]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testExclusiveAccessSerialisesTwoConcurrentHolders]' passed (0.205 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testNoFileMeansNoBackup]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testNoFileMeansNoBackup]' passed (0.001 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testQuarantineKeepsTheBytesUnderANewName]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testQuarantineKeepsTheBytesUnderANewName]' passed (0.006 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testTheDefaultLocationIsTheAppsOwnApplicationSupportFolder]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testTheDefaultLocationIsTheAppsOwnApplicationSupportFolder]' passed (0.001 seconds).
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testTwoQuarantinesInOneSecondKeepBothFiles]' started.
+Test Case '-[MenubarSpacerTests.FileBackupStoreTests testTwoQuarantinesInOneSecondKeepBothFiles]' passed (0.009 seconds).
+Test Suite 'FileBackupStoreTests' passed at 2026-11-25 16:10:45.042.
+	 Executed 9 tests, with 0 failures (0 unexpected) in 0.251 (0.252) seconds
+Test Suite 'HardwareEndToEndTests' started at 2026-11-25 16:10:45.042.
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testADecimalIsNotSilentlyTruncated]' started.
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/HardwareEndToEndTests.swift:22: -[MenubarSpacerTests.HardwareEndToEndTests testADecimalIsNotSilentlyTruncated] : Test skipped - opt-in hardware test; set MENUBAR_SPACER_HARDWARE_TEST=1
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testADecimalIsNotSilentlyTruncated]' skipped (0.001 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testAnEmptyPlanWritesNothing]' started.
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/HardwareEndToEndTests.swift:22: -[MenubarSpacerTests.HardwareEndToEndTests testAnEmptyPlanWritesNothing] : Test skipped - opt-in hardware test; set MENUBAR_SPACER_HARDWARE_TEST=1
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testAnEmptyPlanWritesNothing]' skipped (0.000 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testApplyAndRestoreAgainstTheRealPreferenceDomain]' started.
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/HardwareEndToEndTests.swift:22: -[MenubarSpacerTests.HardwareEndToEndTests testApplyAndRestoreAgainstTheRealPreferenceDomain] : Test skipped - opt-in hardware test; set MENUBAR_SPACER_HARDWARE_TEST=1
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testApplyAndRestoreAgainstTheRealPreferenceDomain]' skipped (0.000 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim]' started.
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/HardwareEndToEndTests.swift:22: -[MenubarSpacerTests.HardwareEndToEndTests testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim] : Test skipped - opt-in hardware test; set MENUBAR_SPACER_HARDWARE_TEST=1
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testValuesTheAppCannotInterpretAreReadAndRestoredVerbatim]' skipped (0.000 seconds).
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testWritingASingleKeyLeavesTheOtherUntouched]' started.
+/private/tmp/menubar-spacer-verify-pkg/v26/Tests/MenubarSpacerTests/HardwareEndToEndTests.swift:22: -[MenubarSpacerTests.HardwareEndToEndTests testWritingASingleKeyLeavesTheOtherUntouched] : Test skipped - opt-in hardware test; set MENUBAR_SPACER_HARDWARE_TEST=1
+Test Case '-[MenubarSpacerTests.HardwareEndToEndTests testWritingASingleKeyLeavesTheOtherUntouched]' skipped (0.000 seconds).
+Test Suite 'HardwareEndToEndTests' passed at 2026-11-25 16:10:45.044.
+	 Executed 5 tests, with 5 tests skipped and 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'LaunchTests' started at 2026-11-25 16:10:45.044.
+Test Case '-[MenubarSpacerTests.LaunchTests testAnOrdinaryLaunchRuns]' started.
+Test Case '-[MenubarSpacerTests.LaunchTests testAnOrdinaryLaunchRuns]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.LaunchTests testASecondCopyExitsInsteadOfOpeningASecondWindow]' started.
+Test Case '-[MenubarSpacerTests.LaunchTests testASecondCopyExitsInsteadOfOpeningASecondWindow]' passed (0.000 seconds).
+Test Suite 'LaunchTests' passed at 2026-11-25 16:10:45.045.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'OpaqueValueTests' started at 2026-11-25 16:10:45.045.
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testADecimalRoundTripsWithoutTruncation]' started.
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testADecimalRoundTripsWithoutTruncation]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testAStringRoundTrips]' started.
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testAStringRoundTrips]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testItSurvivesTheBackupFileFormat]' started.
+Test Case '-[MenubarSpacerTests.OpaqueValueTests testItSurvivesTheBackupFileFormat]' passed (0.000 seconds).
+Test Suite 'OpaqueValueTests' passed at 2026-11-25 16:10:45.046.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'OutcomeMessageTests' started at 2026-11-25 16:10:45.046.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testAMessageAboutAChangeSaysHowToSeeIt]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testAMessageAboutAChangeSaysHowToSeeIt]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testARefusalSaysNothingWasChanged]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testARefusalSaysNothingWasChanged]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testEveryOutcomeSaysSomething]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testEveryOutcomeSaysSomething]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testNoMessageLeaksTheAppsOwnVocabulary]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testNoMessageLeaksTheAppsOwnVocabulary]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testTheEscapeHatchIsOfferedWheneverTheRecordIsUnusable]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testTheEscapeHatchIsOfferedWheneverTheRecordIsUnusable]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testTheScopeNoteNamesWhatTheSettingDoesNotReach]' started.
+Test Case '-[MenubarSpacerTests.OutcomeMessageTests testTheScopeNoteNamesWhatTheSettingDoesNotReach]' passed (0.000 seconds).
+Test Suite 'OutcomeMessageTests' passed at 2026-11-25 16:10:45.047.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'RestorePlannerTests' started at 2026-11-25 16:10:45.047.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAHalfLandedRestoreCanBeResumed]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAHalfLandedRestoreCanBeResumed]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAHalfLandedWriteIsOursToCleanUp]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAHalfLandedWriteIsOursToCleanUp]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAlreadyOriginalIsNotAWrite]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAlreadyOriginalIsNotAWrite]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAMixOfOurTwoStatesStillCountsAsOurs]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAMixOfOurTwoStatesStillCountsAsOurs]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnExternalChangeIsNotSilentlyOverwritten]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnExternalChangeIsNotSilentlyOverwritten]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnOriginalThatCannotBeWrittenBackIsReportedNotAttempted]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnOriginalThatCannotBeWrittenBackIsReportedNotAttempted]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnUnusualValueIsRestoredLikeAnyOther]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testAnUnusualValueIsRestoredLikeAnyOther]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testBackupRoundTripsThroughJSON]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testBackupRoundTripsThroughJSON]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testNothingToRestoreWithoutABackup]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testNothingToRestoreWithoutABackup]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testRestoringDeletesKeysThatWereOriginallyAbsent]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testRestoringDeletesKeysThatWereOriginallyAbsent]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testRestoringPutsBackAPreexistingValue]' started.
+Test Case '-[MenubarSpacerTests.RestorePlannerTests testRestoringPutsBackAPreexistingValue]' passed (0.000 seconds).
+Test Suite 'RestorePlannerTests' passed at 2026-11-25 16:10:45.049.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SpacingCoordinatorTests' started at 2026-11-25 16:10:45.049.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAChangeThatDoesNothingOverAnOutsideValueDoesNotAdoptIt]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAChangeThatDoesNothingOverAnOutsideValueDoesNotAdoptIt]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAChangeThatLandedIsNotReportedAsAFailedChange]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAChangeThatLandedIsNotReportedAsAFailedChange]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testACompletedWriteIsNotReportedAsAFailureBecauseCleanupFailed]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testACompletedWriteIsNotReportedAsAFailureBecauseCleanupFailed]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAFirstChangeThatFailsLeavesARecordThatUndoClearsHarmlessly]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAFirstChangeThatFailsLeavesARecordThatUndoClearsHarmlessly]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAfterAReportedFailureTheRecordIsAsItWasAndUndoStillWorks]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAfterAReportedFailureTheRecordIsAsItWasAndUndoStillWorks]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAHalfLandedRestoreCanBeRetried]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAHalfLandedRestoreCanBeRetried]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAHalfLandedWriteLeavesARecordThatMatchesTheMac]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAHalfLandedWriteLeavesARecordThatMatchesTheMac]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnExternalChangeIsRefusedNotOverwritten]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnExternalChangeIsRefusedNotOverwritten]' passed (0.001 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnIgnoredWriteIsReportedRatherThanCalledSuccess]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnIgnoredWriteIsReportedRatherThanCalledSuccess]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndecodableBackupIsSetAsideEvenWhenTheWayHomeDidNotTake]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndecodableBackupIsSetAsideEvenWhenTheWayHomeDidNotTake]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndecodableBackupStillBlocksAValuePreset]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndecodableBackupStillBlocksAValuePreset]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndoThatFailsKeepsTheWayBack]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUndoThatFailsKeepsTheWayBack]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupBlocksAValuePreset]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupBlocksAValuePreset]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupIsUntouchedWhenNothingIsWritten]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupIsUntouchedWhenNothingIsWritten]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupNeverProducesARestoreWrite]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupNeverProducesARestoreWrite]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupStaysWhenTheWayHomeDidNotTake]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnreadableBackupStaysWhenTheWayHomeDidNotTake]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnusualPreexistingValueIsRecordedAndRestored]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAnUnusualPreexistingValueIsRecordedAndRestored]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAPartlyLandedWriteWhoseRecordWillNotUpdateSaysSo]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAPartlyLandedWriteWhoseRecordWillNotUpdateSaysSo]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingAPresetWritesBothKeysAndRecordsTheWayBack]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingAPresetWritesBothKeysAndRecordsTheWayBack]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingOverAnExternalChangeSaysSo]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingOverAnExternalChangeSaysSo]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingTheSameValueTwiceWritesNothingTheSecondTime]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testApplyingTheSameValueTwiceWritesNothingTheSecondTime]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testARecordNoRetryCanReadIsSetAsideOnTheWayHome]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testARecordNoRetryCanReadIsSetAsideOnTheWayHome]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAWriteThatDidWhatWasAskedIgnoresARecordThatWillNotRewrite]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testAWriteThatDidWhatWasAskedIgnoresARecordThatWillNotRewrite]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testEveryMutatingPathRunsUnderTheLock]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testEveryMutatingPathRunsUnderTheLock]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testNothingIsSaidWhenNoEveryHostValueExists]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testNothingIsSaidWhenNoEveryHostValueExists]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testOnlyTheDifferingKeyIsWritten]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testOnlyTheDifferingKeyIsWritten]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testOutcomesSayWhatAppliesWhenThisMacsSettingIsCleared]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testOutcomesSayWhatAppliesWhenThisMacsSettingIsCleared]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringDeletesKeysThatWereOriginallyAbsent]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringDeletesKeysThatWereOriginallyAbsent]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringWhenAlreadyOriginalClearsTheStaleRecord]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringWhenAlreadyOriginalClearsTheStaleRecord]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringWithoutABackupWritesNothing]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testRestoringWithoutABackupWritesNothing]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testReturningToTheOriginalDropsTheBackup]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testReturningToTheOriginalDropsTheBackup]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testReturningToTheOSDefaultStaysAvailableWithAnUnreadableBackup]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testReturningToTheOSDefaultStaysAvailableWithAnUnreadableBackup]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateDistinguishesNoBackupFromAnUnreadableOne]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateDistinguishesNoBackupFromAnUnreadableOne]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateNamesThePresetAndTheBackup]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateNamesThePresetAndTheBackup]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateReportsAValueWeDidNotProduce]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testStateReportsAValueWeDidNotProduce]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheBackupIsStoredBeforeTheFirstWrite]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheBackupIsStoredBeforeTheFirstWrite]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheEveryHostValueIsMentionedEvenWhileItIsOverridden]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheEveryHostValueIsMentionedEvenWhileItIsOverridden]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheLiveStateIsReadInsideTheLockNotBeforeIt]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheLiveStateIsReadInsideTheLockNotBeforeIt]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheOriginalSurvivesASecondApply]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheOriginalSurvivesASecondApply]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheOverlayIsPerKey]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheOverlayIsPerKey]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheRecordIsStoredBeforeTheWriteAndCorrectedAfterIt]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testTheRecordIsStoredBeforeTheWriteAndCorrectedAfterIt]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testThisHostsValueWinsOverTheEveryHostValue]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testThisHostsValueWinsOverTheEveryHostValue]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testWhatIsInEffectFallsBackToTheEveryHostValue]' started.
+Test Case '-[MenubarSpacerTests.SpacingCoordinatorTests testWhatIsInEffectFallsBackToTheEveryHostValue]' passed (0.000 seconds).
+Test Suite 'SpacingCoordinatorTests' passed at 2026-11-25 16:10:45.059.
+	 Executed 43 tests, with 0 failures (0 unexpected) in 0.007 (0.009) seconds
+Test Suite 'SpacingDescriptionTests' started at 2026-11-25 16:10:45.059.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testAStateWeDidNotProduceIsExplainedNotDumped]' started.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testAStateWeDidNotProduceIsExplainedNotDumped]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testAValueReadsAsItsNumber]' started.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testAValueReadsAsItsNumber]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testBackupStatusIsPhrasedForAPerson]' started.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testBackupStatusIsPhrasedForAPerson]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testNoUserFacingStringNamesAPreferenceKey]' started.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testNoUserFacingStringNamesAPreferenceKey]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testTheUntouchedStateIsNamedAfterMacOSNotOurKeys]' started.
+Test Case '-[MenubarSpacerTests.SpacingDescriptionTests testTheUntouchedStateIsNamedAfterMacOSNotOurKeys]' passed (0.000 seconds).
+Test Suite 'SpacingDescriptionTests' passed at 2026-11-25 16:10:45.060.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'SpacingPlanTests' started at 2026-11-25 16:10:45.060.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAnyIntegerIsAcceptable]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAnyIntegerIsAcceptable]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testApplyingAPresetSetsBothKeys]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testApplyingAPresetSetsBothKeys]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAValueThatCannotBeReconstructedIsNotRestorable]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAValueThatCannotBeReconstructedIsNotRestorable]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAValueTheAppCannotInterpretIsStillPlanned]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testAValueTheAppCannotInterpretIsStillPlanned]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testKeyNamesAreTheMeasuredOnes]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testKeyNamesAreTheMeasuredOnes]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testNoOperationsWhenAlreadyAtTheTarget]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testNoOperationsWhenAlreadyAtTheTarget]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testOnlyTheDifferingKeyIsTouched]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testOnlyTheDifferingKeyIsTouched]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testReturningToOSDefaultDeletesBothKeys]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testReturningToOSDefaultDeletesBothKeys]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testUniformValueOnlyWhenBothKeysAgreeOnAnInteger]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testUniformValueOnlyWhenBothKeysAgreeOnAnInteger]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testUnsetIsBothKeysAbsent]' started.
+Test Case '-[MenubarSpacerTests.SpacingPlanTests testUnsetIsBothKeysAbsent]' passed (0.000 seconds).
+Test Suite 'SpacingPlanTests' passed at 2026-11-25 16:10:45.061.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'SpacingPresetTests' started at 2026-11-25 16:10:45.061.
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testMatchingRecognisesEachPreset]' started.
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testMatchingRecognisesEachPreset]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testMatchingRejectsAStateWeDidNotProduce]' started.
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testMatchingRejectsAStateWeDidNotProduce]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testPresetValues]' started.
+Test Case '-[MenubarSpacerTests.SpacingPresetTests testPresetValues]' passed (0.000 seconds).
+Test Suite 'SpacingPresetTests' passed at 2026-11-25 16:10:45.062.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+Test Suite 'SpacingSampleTests' started at 2026-11-25 16:10:45.062.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testAllFourPresetsAreDrawnTogether]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testAllFourPresetsAreDrawnTogether]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testAStateWeDidNotProduceIsNotDrawn]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testAStateWeDidNotProduceIsNotDrawn]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEveryPresetCanBeDrawn]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEveryPresetCanBeDrawn]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEverySampleSymbolExists]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEverySampleSymbolExists]' passed (0.028 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEverySlotMatchesTheMeasuredWidth]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testEverySlotMatchesTheMeasuredWidth]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testTheDefaultIsDrawnAsTheMeasuredSixteen]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testTheDefaultIsDrawnAsTheMeasuredSixteen]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testTheTotalsMatchThePhotographedStrips]' started.
+Test Case '-[MenubarSpacerTests.SpacingSampleTests testTheTotalsMatchThePhotographedStrips]' passed (0.000 seconds).
+Test Suite 'SpacingSampleTests' passed at 2026-11-25 16:10:45.091.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.028 (0.029) seconds
+Test Suite 'SpacingViewModelTests' started at 2026-11-25 16:10:45.091.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAFailureIsReportedAsTextRatherThanThrown]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAFailureIsReportedAsTextRatherThanThrown]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAfterAFailedChangeUndoIsStillOfferedForTheEarlierOne]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAfterAFailedChangeUndoIsStillOfferedForTheEarlierOne]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testApplyingOverAnOutsideChangeTellsTheUserWhatItReplaced]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testApplyingOverAnOutsideChangeTellsTheUserWhatItReplaced]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testApplyingWritesAndReportsWhatToDoNext]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testApplyingWritesAndReportsWhatToDoNext]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAStateWeDidNotProduceOpensOnTheDefaultChoice]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testAStateWeDidNotProduceOpensOnTheDefaultChoice]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testItOpensOnThePresetTheMacIsAlreadyAt]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testItOpensOnThePresetTheMacIsAlreadyAt]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testRestoringResetsTheSelectionToWhatTheMacNowHolds]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testRestoringResetsTheSelectionToWhatTheMacNowHolds]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testTheEscapeHatchWorksFromTheUIWhenTheRecordIsDamaged]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testTheEscapeHatchWorksFromTheUIWhenTheRecordIsDamaged]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testTheWindowsMessagesKnowAboutTheEveryHostValue]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testTheWindowsMessagesKnowAboutTheEveryHostValue]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testUndoIsOfferedOnlyWhileSomethingOfOursIsInEffect]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testUndoIsOfferedOnlyWhileSomethingOfOursIsInEffect]' passed (0.000 seconds).
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testUndoIsStillOfferedWhenTheRecordCannotBeRead]' started.
+Test Case '-[MenubarSpacerTests.SpacingViewModelTests testUndoIsStillOfferedWhenTheRecordCannotBeRead]' passed (0.000 seconds).
+Test Suite 'SpacingViewModelTests' passed at 2026-11-25 16:10:45.093.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.001 (0.002) seconds
+Test Suite 'MenubarSpacerTests.xctest' passed at 2026-11-25 16:10:45.093.
+	 Executed 117 tests, with 5 tests skipped and 0 failures (0 unexpected) in 0.296 (0.304) seconds
+Test Suite 'All tests' passed at 2026-11-25 16:10:45.093.
+	 Executed 117 tests, with 5 tests skipped and 0 failures (0 unexpected) in 0.296 (0.305) seconds
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests in 0 suites passed after 0.001 seconds.
+=== swift build -c release --disable-sandbox with SDK_LINK_FLAGS (v26) ===
+warning: <HOME>/Library/org.swift.swiftpm/configuration is not accessible or not writable, disabling user-level cache features.
+warning: <HOME>/Library/org.swift.swiftpm/security is not accessible or not writable, disabling user-level cache features.
+warning: <HOME>/Library/Caches/org.swift.swiftpm is not accessible or not writable, disabling user-level cache features.
+warning: 'v26': failed storing manifest for 'v26' in cache: attempt to write a readonly database
+Building for production...
+[Planning deferred tasks]
+[14 / 24] SpacingProbe-product
+[27 / 92]
+[33 / 92]
+[38 / 92]
+[40 / 92]
+[45 / 92]
+[47 / 92]
+[49 / 92]
+[57 / 92]
+[60 / 92]
+[62 / 92]
+[63 / 92]
+[75 / 92]
+[79 / 92]
+[81 / 92]
+[84 / 92] SpacingProbe-product
+[86 / 92] SpacingProbe-product
+[89 / 92] SpacingProbe-product
+[90 / 92] MenubarSpacer-product
+[91 / 92] MenubarSpacer-product
+Build complete! (5.67秒)
+=== otool -l LC_BUILD_VERSION (MenubarSpacer release v26) ===
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 26.0
+      sdk 27.2
+   ntools 1
+=== otool -l LC_BUILD_VERSION (SpacingProbe release v26) ===
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 26.0
+      sdk 27.2
+   ntools 1
+=== SpacingProbe --self-test ===
+PASS: 9 probe guard cases
+=== python3 spikes/test_phase1.py ===
+test_incomplete_geometry_is_reported_not_guessed (__main__.AnalysisTests.test_incomplete_geometry_is_reported_not_guessed) ... ok
+test_notices_a_failed_write_read_back (__main__.AnalysisTests.test_notices_a_failed_write_read_back) ... ok
+test_notices_two_values_producing_the_same_geometry (__main__.AnalysisTests.test_notices_two_values_producing_the_same_geometry) ... ok
+test_notices_when_restoration_did_not_reproduce_the_baseline (__main__.AnalysisTests.test_notices_when_restoration_did_not_reproduce_the_baseline) ... ok
+test_reports_each_stage_and_restoration (__main__.AnalysisTests.test_reports_each_stage_and_restoration) ... ok
+test_same_process_detects_new_items_keeping_the_old_value (__main__.AnalysisTests.test_same_process_detects_new_items_keeping_the_old_value) ... ok
+test_same_process_detects_new_items_picking_up_the_value (__main__.AnalysisTests.test_same_process_detects_new_items_picking_up_the_value) ... ok
+test_accepts_an_empty_scope (__main__.RestorationGuardTests.test_accepts_an_empty_scope) ... ok
+test_accepts_the_two_spacing_keys (__main__.RestorationGuardTests.test_accepts_the_two_spacing_keys) ... ok
+test_refuses_a_malformed_snapshot (__main__.RestorationGuardTests.test_refuses_a_malformed_snapshot) ... ok
+test_refuses_a_scope_holding_anything_else (__main__.RestorationGuardTests.test_refuses_a_scope_holding_anything_else) ... ok
+test_ignores_other_phases (__main__.SettledTests.test_ignores_other_phases) ... ok
+test_requires_at_least_two_samples (__main__.SettledTests.test_requires_at_least_two_samples) ... ok
+test_requires_the_last_two_samples_to_agree (__main__.SettledTests.test_requires_the_last_two_samples_to_agree) ... ok
+test_returns_the_settled_widths (__main__.SettledTests.test_returns_the_settled_widths) ... ok
+test_reads_three_items (__main__.WidthTests.test_reads_three_items) ... ok
+test_rejects_a_missing_item (__main__.WidthTests.test_rejects_a_missing_item) ... ok
+test_rejects_a_nonpositive_width (__main__.WidthTests.test_rejects_a_nonpositive_width) ... ok
+test_rejects_an_item_without_a_window (__main__.WidthTests.test_rejects_an_item_without_a_window) ... ok
+test_rejects_an_unexpected_fixture (__main__.WidthTests.test_rejects_an_unexpected_fixture) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.004s
+
+OK
+=== python3 scripts/check-docs.py ===
+check-docs: links resolve, no retired name in use

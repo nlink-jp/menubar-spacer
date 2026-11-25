@@ -1,0 +1,34 @@
+# Timestamp (JST): 2026-11-25T16:11:07+0900
+=== Assemble ad-hoc signed .app bundles ===
+/private/tmp/menubar-spacer-verify-pkg/app-test/MenubarSpacer-27.app: replacing existing signature
+/private/tmp/menubar-spacer-verify-pkg/app-test/MenubarSpacer-26.app: replacing existing signature
+=== Info.plist LSMinimumSystemVersion ===
+MenubarSpacer-27.app: 27.0
+MenubarSpacer-26.app: 26.0
+=== LC_BUILD_VERSION ===
+--- MenubarSpacer-27.app ---
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 27.0
+      sdk 27.2
+   ntools 1
+--- MenubarSpacer-26.app ---
+      cmd LC_BUILD_VERSION
+  cmdsize 32
+ platform 1
+    minos 26.0
+      sdk 27.2
+   ntools 1
+=== Launch MenubarSpacer-27.app via open -W -n ===
+exit=1
+output=_LSOpenURLsWithCompletionHandler() failed with error -10825.
+=== Launch MenubarSpacer-26.app via open -n ===
+exit=0
+output=
+running_instance_count_after_3s=1
+=== Single-instance guard check (launch second copy directly) ===
+second_launch_exit=0
+second_launch_output=menubar-spacer is already running
+=== Terminate MenubarSpacer-26.app with SIGTERM ===
+remaining_instance_count_after_TERM=0

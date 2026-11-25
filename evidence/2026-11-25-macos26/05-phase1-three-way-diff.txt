@@ -1,0 +1,42 @@
+=== OS versions ===
+27.0  : Version 27.0 (Build 26A428)
+26.7.1 Run1: Version 26.7.1 (Build 25G241)
+26.7.1 Run2: Version 26.7.1 (Build 25G241)
+
+=== Full result equality ===
+R1 result == R2 result: True
+27 result == R1 result: True
+27 result == R2 result: True
+
+=== Stage-by-stage geometry (button_width / window_width / intrinsic_width) ===
+Stage: baseline
+  variable_text : 27.0={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | R1={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | R2={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | match=True
+  square_symbol : 27.0={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | R1={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | R2={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | match=True
+  fixed_32      : 27.0={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | R1={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | R2={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | match=True
+Stage: value_4
+  variable_text : 27.0={'button_width': 25, 'window_width': 25, 'intrinsic_width': 21} | R1={'button_width': 25, 'window_width': 25, 'intrinsic_width': 21} | R2={'button_width': 25, 'window_width': 25, 'intrinsic_width': 21} | match=True
+  square_symbol : 27.0={'button_width': 22, 'window_width': 26, 'intrinsic_width': 16} | R1={'button_width': 22, 'window_width': 26, 'intrinsic_width': 16} | R2={'button_width': 22, 'window_width': 26, 'intrinsic_width': 16} | match=True
+  fixed_32      : 27.0={'button_width': 32, 'window_width': 36, 'intrinsic_width': 21} | R1={'button_width': 32, 'window_width': 36, 'intrinsic_width': 21} | R2={'button_width': 32, 'window_width': 36, 'intrinsic_width': 21} | match=True
+Stage: value_8
+  variable_text : 27.0={'button_width': 29, 'window_width': 29, 'intrinsic_width': 21} | R1={'button_width': 29, 'window_width': 29, 'intrinsic_width': 21} | R2={'button_width': 29, 'window_width': 29, 'intrinsic_width': 21} | match=True
+  square_symbol : 27.0={'button_width': 22, 'window_width': 30, 'intrinsic_width': 16} | R1={'button_width': 22, 'window_width': 30, 'intrinsic_width': 16} | R2={'button_width': 22, 'window_width': 30, 'intrinsic_width': 16} | match=True
+  fixed_32      : 27.0={'button_width': 32, 'window_width': 40, 'intrinsic_width': 21} | R1={'button_width': 32, 'window_width': 40, 'intrinsic_width': 21} | R2={'button_width': 32, 'window_width': 40, 'intrinsic_width': 21} | match=True
+Stage: value_24
+  variable_text : 27.0={'button_width': 45, 'window_width': 45, 'intrinsic_width': 21} | R1={'button_width': 45, 'window_width': 45, 'intrinsic_width': 21} | R2={'button_width': 45, 'window_width': 45, 'intrinsic_width': 21} | match=True
+  square_symbol : 27.0={'button_width': 22, 'window_width': 46, 'intrinsic_width': 16} | R1={'button_width': 22, 'window_width': 46, 'intrinsic_width': 16} | R2={'button_width': 22, 'window_width': 46, 'intrinsic_width': 16} | match=True
+  fixed_32      : 27.0={'button_width': 32, 'window_width': 56, 'intrinsic_width': 21} | R1={'button_width': 32, 'window_width': 56, 'intrinsic_width': 21} | R2={'button_width': 32, 'window_width': 56, 'intrinsic_width': 21} | match=True
+Stage: restored
+  variable_text : 27.0={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | R1={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | R2={'button_width': 37, 'window_width': 37, 'intrinsic_width': 21} | match=True
+  square_symbol : 27.0={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | R1={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | R2={'button_width': 22, 'window_width': 38, 'intrinsic_width': 16} | match=True
+  fixed_32      : 27.0={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | R1={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | R2={'button_width': 32, 'window_width': 48, 'intrinsic_width': 21} | match=True
+
+=== Same-process & child-process summary ===
+same_process equal across all 3: True
+  requested_value: 27.0=4 | R1=4 | R2=4
+  write_status: 27.0=0 | R1=0 | R2=0
+  existing_items_changed: 27.0=False | R1=False | R2=False
+  new_items_changed: 27.0=False | R1=False | R2=False
+  new_items_match_fresh_process: 27.0=False | R1=False | R2=False
+  child_process.launched: True
+  child_process.matches_fresh_process: True
+  child_process.differs_from_parent: True
